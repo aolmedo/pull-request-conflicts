@@ -70,9 +70,32 @@ class GHTorrentDB(object):
                 commit = Commit(*commit_data)
         return commit
 
+    def get_pull_requests_commits(self, pull_request):
+        commits = []
+        query = "SELECT * FROM commits WHERE id IN " \
+            "(SELECT commit_id FROM pull_request_commits WHERE " \
+                "pull_request_id = %(pull_request_id)s)"
+        params = {'pull_request_id': pull_request.id}
+        with self.conn as conn:
+            with conn.cursor() as cursor:
+                cursor.execute(query, params)
+                commits_data = cursor.fetchall()
+                for commit_data in commits_data:
+                    commit = Commit(*commit_data)
+                    commits.append(commit)
+        return commits
+
     def set_pull_request_conflicting_merge(self, pull_request):
         query = "UPDATE {} SET conflicting_merge = 't' WHERE " \
             "id = %(id)s".format(self.pull_request_table_name)
         with self.conn as conn:
             with conn.cursor() as cursor:
                 cursor.execute(query, {'id': pull_request.id})
+
+    def set_pull_request_merge_conflict_amount(self, pull_request, merge_conflict_amount):
+        query = "UPDATE {} SET merge_conflict_amount = %(merge_conflict_amount)s WHERE " \
+            "id = %(id)s".format(self.pull_request_table_name)
+        with self.conn as conn:
+            with conn.cursor() as cursor:
+                cursor.execute(query, {'id': pull_request.id,
+                                       'merge_conflict_amount': merge_conflict_amount})
