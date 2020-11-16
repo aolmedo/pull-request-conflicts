@@ -17,9 +17,19 @@ class GHTorrentDB(object):
 
     def get_pull_requests(self):
         pull_requests = []
-        query = "SELECT * FROM {} WHERE intra_branch = %(intra_branch)s AND "\
-            "merged = %(merged)s".format(self.pull_request_table_name)
-        params = {'intra_branch': True, 'merged': True}
+        query = "SELECT * FROM {} ORDER BY opened_at".format(self.pull_request_table_name)
+        with self.conn as conn:
+            with conn.cursor() as cursor:
+                cursor.execute(query, {})
+                for pr_data in cursor.fetchall():
+                    pr = PullRequest(*pr_data)
+                    pull_requests.append(pr)
+        return pull_requests
+
+    def get_merged_pull_requests(self):
+        pull_requests = []
+        query = "SELECT * FROM {} WHERE merged = %(merged)s ORDER BY opened_at".format(self.pull_request_table_name)
+        params = {'merged': True}
         with self.conn as conn:
             with conn.cursor() as cursor:
                 cursor.execute(query, params)
