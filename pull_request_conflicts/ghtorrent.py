@@ -17,7 +17,9 @@ class GHTorrentDB(object):
 
     def get_pull_requests(self):
         pull_requests = []
-        query = "SELECT * FROM {} ORDER BY opened_at".format(self.pull_request_table_name)
+        query = "SELECT id, head_repo_id, base_repo_id, head_commit_id, base_commit_id, " \
+                "pullreq_id, intra_branch, merged, opened_at, closed_at FROM {} " \
+                "ORDER BY opened_at".format(self.pull_request_table_name)
         with self.conn as conn:
             with conn.cursor() as cursor:
                 cursor.execute(query, {})
@@ -28,8 +30,26 @@ class GHTorrentDB(object):
 
     def get_merged_pull_requests(self):
         pull_requests = []
-        query = "SELECT * FROM {} WHERE merged = %(merged)s ORDER BY opened_at".format(self.pull_request_table_name)
+        query = "SELECT id, head_repo_id, base_repo_id, head_commit_id, base_commit_id, " \
+                "pullreq_id, intra_branch, merged, opened_at, closed_at FROM {} WHERE " \
+                "merged = %(merged)s ORDER BY opened_at".format(self.pull_request_table_name)
         params = {'merged': True}
+        with self.conn as conn:
+            with conn.cursor() as cursor:
+                cursor.execute(query, params)
+                for pr_data in cursor.fetchall():
+                    pr = PullRequest(*pr_data)
+                    pull_requests.append(pr)
+        return pull_requests
+
+    def get_pull_requests_between(self, date_from, date_to):
+        pull_requests = []
+        query = "SELECT id, head_repo_id, base_repo_id, head_commit_id, base_commit_id, " \
+                "pullreq_id, intra_branch, merged, opened_at, closed_at FROM {} WHERE " \
+                "(opened_at < %(date_from)s AND closed_at > %(date_from)s) " \
+                "OR (opened_at > %(date_from)s AND opened_at < %(date_to)s) " \
+                "ORDER BY opened_at".format(self.pull_request_table_name)
+        params = {'date_from': date_from, 'date_to': date_to}
         with self.conn as conn:
             with conn.cursor() as cursor:
                 cursor.execute(query, params)
