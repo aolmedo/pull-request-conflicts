@@ -104,7 +104,7 @@ class GHTorrentDB(object):
         commits = []
         query = "SELECT * FROM commits WHERE id IN " \
             "(SELECT commit_id FROM pull_request_commits WHERE " \
-                "pull_request_id = %(pull_request_id)s)"
+                "pull_request_id = %(pull_request_id)s) ORDER BY created_at"
         params = {'pull_request_id': pull_request.id}
         with self.conn as conn:
             with conn.cursor() as cursor:

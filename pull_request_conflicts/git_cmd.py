@@ -59,7 +59,7 @@ class GitCommandLineInterface(object):
         except VersionNotFound:
             print("No se encontro la version {}".format(commit_sha_1))
             self.checkout(self.repo_head)
-            return
+            return False
         try:
             self.merge(commit_sha_2)
         except MergeConflictDetected:
