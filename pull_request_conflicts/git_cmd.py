@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import re
 import subprocess
 
 
@@ -28,8 +29,15 @@ class GitCommandLineInterface(object):
         """
         result = subprocess.run(['git','merge', commit_sha, '--no-commit', '--no-ff'],
                                 cwd=self.repo_path, capture_output=True)
-        if result.returncode == 1:
-            raise MergeConflictDetected()
+
+        stdout = result.stdout
+        stdout = stdout.decode('utf-8')
+        lines = stdout.split('\n')
+        if len(lines) >= 2:
+            regex = r'.*Fusión automática falló; arregle los conflictos y luego realice un commit con el resultado.*'
+            result_text = lines[-2]
+            if re.match(regex, result_text):
+                raise MergeConflictDetected()
 
     def merge_abort(self):
         """
