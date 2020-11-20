@@ -16,29 +16,37 @@ class PullRequestConflcitAnalyzer(object):
         self.repo_head = repo_head if repo_head else 'master'
         self.pull_request_table_name = "{}_pull_requests".format(project_name)
 
-    def analyze(self):
-        ghtorrent_db = GHTorrentDB(pull_request_table_name=self.pull_request_table_name)
+        self.ghtorrent_db = GHTorrentDB(pull_request_table_name=self.pull_request_table_name)
+
+    def export_pull_request_conflict_table(self):
+        filename = '{}_pull_request_conflict.csv'.format(self.project_name)
+
+        pull_requests = self.ghtorrent_db.get_merged_pull_requests()
+
+        pull_request_conflicts = self.analyze_pull_request_conflict(pull_requests)
+
+        with open(filename, 'w') as csv_file:
+            csv_writer = csv.writer(csv_file)
+            csv_writer.writerow(['Pull Request ID', 'Amount of conflicting merges'])
+            for pull_request_conflict in pull_request_conflicts:
+                csv_writer.writerow(pull_request_conflict)
+
+    def analyze_pull_request_conflict(self, pull_requests):
+        pull_request_conflicts = []
         git = GitCommandLineInterface(repo_path=self.repo_path, repo_head=self.repo_head)
-
-        pull_requests = ghtorrent_db.get_merged_pull_requests()
-
         for pull_request in pull_requests:
             merge_conflict_amount = 0
-            conflicting_merge = False
             # Buscar los commits que se hicieron durante la vida del PR
-            pull_request_commits = ghtorrent_db.get_pull_requests_commits(pull_request)
+            pull_request_commits = self.ghtorrent_db.get_pull_requests_commits(pull_request)
             for pull_request_commit in pull_request_commits:
-                commit_parents = ghtorrent_db.get_commit_parents(pull_request_commit.id)
+                commit_parents = self.ghtorrent_db.get_commit_parents(pull_request_commit.id)
                 if len(commit_parents) > 1:
                     a_commit = commit_parents[0]
                     another_commit = commit_parents[1]
                     if git.conflicting_merge(a_commit.sha, another_commit.sha):
-                        conflicting_merge = True
                         merge_conflict_amount += 1
-
-            if conflicting_merge:
-                ghtorrent_db.set_pull_request_conflicting_merge(pull_request)
-                ghtorrent_db.set_pull_request_merge_conflict_amount(pull_request, merge_conflict_amount)
+            pull_request_conflicts.append([pull_request.pullreq_id, merge_conflict_amount])
+        return pull_request_conflicts
 
 
 class PairwiseConflictAnalyzer(object):
@@ -73,7 +81,7 @@ class PairwiseConflictAnalyzer(object):
 
         for a_pull_request in pull_requests:
             pull_request_pairwise_conflicts = []
-            for another_pull_requests in pull_requests:
+            for another_pull_request in pull_requests:
                 pull_request_pairwise_conflicts.append(
                     self.conflicting_pull_requests(a_pull_request, another_pull_request))
             pairwise_conflict_table.append(pull_request_pairwise_conflicts)
@@ -82,11 +90,33 @@ class PairwiseConflictAnalyzer(object):
     def conflicting_pull_requests(self, a_pull_request, another_pull_request):
         # Buscar las versiones a mergear de cada pull requests
         # luego tratar de mergearlas
-        a_pull_request_commits = self.ghtorrent_db.get_pull_requests_commits(a_pull_request)
-        another_pull_request_commits = self.ghtorrent_db.get_pull_requests_commits(another_pull_request)
+        print("Merge entre PR #{} y PR #{}".format(a_pull_request.pullreq_id, another_pull_request.pullreq_id))
 
-        commit_date = min(a_pull_request_commits[-1].created_at, another_pull_request_commits[-1].created_at)
+        #a_pull_request_commits = self.ghtorrent_db.get_pull_requests_commits(a_pull_request)
+        #another_pull_request_commits = self.ghtorrent_db.get_pull_requests_commits(another_pull_request)
 
-        commit_sha_1 = filter(lambda c: c.created_at <= commit_date, a_pull_request_commits)[-1].sha
-        commit_sha_2 = filter(lambda c: c.created_at <= commit_date, a_pull_request_commits)[-1].sha
+        a_pull_request_commit = self.ghtorrent_db.get_commit(a_pull_request.head_commit_id)
+        another_pull_request_commit = self.ghtorrent_db.get_commit(another_pull_request.head_commit_id)
+
+        #commit_date = min(a_pull_request_commits[-1].created_at, another_pull_request_commits[-1].created_at)
+
+        #commit_sha_1 = filter(lambda c: c.created_at <= commit_date, a_pull_request_commits)[-1].sha
+        #commit_sha_2 = filter(lambda c: c.created_at <= commit_date, a_pull_request_commits)[-1].sha
+
+        # Quizas podamos filtrar por la fecha date_to del time window.
+
+        # Aca tomo el ultimo commit
+        #commit_sha_1 = a_pull_request_commits[-1].sha
+        #commit_sha_2 = another_pull_request_commits[-1].sha
+
+        # Aca tomo el primer commit del PR
+        #commit_sha_1 = a_pull_request_commits[0].sha
+        #commit_sha_2 = another_pull_request_commits[0].sha
+
+        # Probemos con los heads de los PR
+        commit_sha_1 = a_pull_request_commit.sha
+        commit_sha_2 = another_pull_request_commit.sha
+
+        print("Merge de commit {} en el commit {}".format(commit_sha_2, commit_sha_1))
+
         return int(self.git.conflicting_merge(commit_sha_1, commit_sha_2))
