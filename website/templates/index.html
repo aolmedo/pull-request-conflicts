@@ -1,0 +1,50 @@
+<!doctype html>
+<html>
+
+<head>
+    <title>Pull Requests Analysis</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="static/js/Chart.min.js"></script>
+    <script src="static/js/utils.js"></script>
+    <style>
+        canvas {
+            -moz-user-select: none;
+            -webkit-user-select: none;
+            -ms-user-select: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="form">
+        <form id="searchform">
+            <label>Project:</label>
+            <select name="project">
+                <option name='twitter4j'>twitter4j</option>
+                <option name='broadleaf'>broadleaf</option>
+                <!--option name='gradle'>gradle</option-->
+                <option name='antlr4'>antlr4</option>
+            </select>
+            <label>Date From:</label>
+            <input name="datefrom" type="date" />
+            <label>Date To:</label>
+            <input name="dateto" type="date" />
+            <label>Interval:</label>
+            <select name="interval">
+                <option name='daily'>daily</option>
+                <option name='weekly'>weekly</option>
+                <option name='biweekly'>biweekly</option>
+                <option name='monthly'>monthly</option>
+                <option name='annual'>annual</option>
+            </select>
+            <input type="submit" value='Process' />
+        </form>
+    </div>
+    <div id="container" style="width: 75%;">
+        <canvas id="canvas"></canvas>
+    </div>
+
+    <script src="static/js/BarChart.js"></script>
+</body>
+
+</html>

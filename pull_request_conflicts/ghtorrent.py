@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import psycopg2
-import settings
-from models import PullRequest, Commit
+from . import settings
+from .models import PullRequest, Commit
 
 
 class GHTorrentDB(object):
@@ -58,6 +58,61 @@ class GHTorrentDB(object):
                     pull_requests.append(pr)
         return pull_requests
 
+    def get_merged_pull_requests_between(self, date_from, date_to):
+        pull_requests = []
+        query = "SELECT id, head_repo_id, base_repo_id, head_commit_id, base_commit_id, " \
+                "pullreq_id, intra_branch, merged, opened_at, closed_at FROM {} WHERE " \
+                "merged = 't' AND " \
+                "((opened_at < %(date_from)s AND closed_at > %(date_from)s) " \
+                "OR (opened_at > %(date_from)s AND opened_at < %(date_to)s)) " \
+                "ORDER BY opened_at".format(self.pull_request_table_name)
+        params = {'date_from': date_from, 'date_to': date_to}
+        with self.conn as conn:
+            with conn.cursor() as cursor:
+                cursor.execute(query, params)
+                for pr_data in cursor.fetchall():
+                    pr = PullRequest(*pr_data)
+                    pull_requests.append(pr)
+        return pull_requests
+
+    def count_of_pull_requests_between(self, date_from, date_to):
+        count = 0
+        query = "SELECT count(*) FROM {} WHERE " \
+                "(opened_at < %(date_from)s AND closed_at > %(date_from)s) " \
+                "OR (opened_at > %(date_from)s AND opened_at < %(date_to)s) ".format(self.pull_request_table_name)
+        params = {'date_from': date_from, 'date_to': date_to}
+        with self.conn as conn:
+            with conn.cursor() as cursor:
+                cursor.execute(query, params)
+                count = cursor.fetchone()[0]
+        return count
+
+    def count_of_merged_pull_requests_between(self, date_from, date_to):
+        count = 0
+        query = "SELECT count(*) FROM {} WHERE " \
+                "merged = 't' AND " \
+                "((opened_at < %(date_from)s AND closed_at > %(date_from)s) " \
+                "OR (opened_at > %(date_from)s AND opened_at < %(date_to)s)) ".format(self.pull_request_table_name)
+        params = {'date_from': date_from, 'date_to': date_to}
+        with self.conn as conn:
+            with conn.cursor() as cursor:
+                cursor.execute(query, params)
+                count = cursor.fetchone()[0]
+        return count
+
+    def count_of_not_merged_pull_requests_between(self, date_from, date_to):
+        count = 0
+        query = "SELECT count(*) FROM {} WHERE " \
+                "merged = 'f' AND " \
+                "((opened_at < %(date_from)s AND closed_at > %(date_from)s) " \
+                "OR (opened_at > %(date_from)s AND opened_at < %(date_to)s)) ".format(self.pull_request_table_name)
+        params = {'date_from': date_from, 'date_to': date_to}
+        with self.conn as conn:
+            with conn.cursor() as cursor:
+                cursor.execute(query, params)
+                count = cursor.fetchone()[0]
+        return count
+
     def get_commit_children(self, commit_id):
         commits = []
         query = "SELECT commit_id FROM commit_parents where parent_id = %(commit_id)s;"
@@ -97,7 +152,8 @@ class GHTorrentDB(object):
             with conn.cursor() as cursor:
                 cursor.execute(query, {'commit_id': commit_id})
                 commit_data = cursor.fetchone()
-                commit = Commit(*commit_data)
+                if commit_data:
+                    commit = Commit(*commit_data)
         return commit
 
     def get_pull_requests_commits(self, pull_request):
