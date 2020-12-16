@@ -45,6 +45,8 @@ class PullRequestsDatasets(APIView):
             current_date = current_date + datetime.timedelta(days=time_interval)
         periods.append(date_to)
 
+        MAX_COLORS = 7
+
         table_name = '{}_pull_requests'.format(project_name)
         ghtorrent_db = GHTorrentDB(table_name)
         
@@ -60,6 +62,7 @@ class PullRequestsDatasets(APIView):
         pairwise_conflict_amounts = []
         real_conflict_amounts = []
         pull_request_groups_amounts = []
+        pull_request_groups_by_period = []
 
         for idx in range(len(periods) - 1):
             a_date_from = periods[idx]
@@ -73,7 +76,8 @@ class PullRequestsDatasets(APIView):
             pairwise_conflict_amount = 0
             real_conflict_amount = 0
             pull_request_groups = 0
-            pull_requests = ghtorrent_db.get_merged_pull_requests_between(a_date_from, a_date_to)
+
+            pull_requests = ghtorrent_db.get_pull_requests_between(a_date_from, a_date_to)
             pull_request_ids = [str(pr.pullreq_id) for pr in pull_requests]
 
             for pull_request_id in pull_request_ids:
@@ -89,8 +93,16 @@ class PullRequestsDatasets(APIView):
             real_conflict_amounts.append(real_conflict_amount)
 
             graph = PairwiseConflictGraphAnalyzer(project_name, pull_requests)
-            pull_request_groups = graph.get_amount_of_colors()
-            pull_request_groups_amounts.append(pull_request_groups)
+            pull_request_groups = graph.get_groups_weight()
+            pull_request_groups_amounts.append(len(pull_request_groups))
+            pull_request_groups_by_period.append(pull_request_groups + [0] * (MAX_COLORS - len(pull_request_groups)))
+
+        pull_request_groups_by_datasets = []
+        for i in range(MAX_COLORS):
+            pull_request_groups_by_dataset = []
+            for groups in pull_request_groups_by_period:
+                pull_request_groups_by_dataset.append(groups[i])
+            pull_request_groups_by_datasets.append(pull_request_groups_by_dataset)
 
         response = {'labels': labels,
                     'pr_amounts': pr_amounts,
@@ -99,7 +111,8 @@ class PullRequestsDatasets(APIView):
                     'conflicting_pr_amounts': conflicting_pr_amounts,
                     'pairwise_conflict_amounts': pairwise_conflict_amounts,
                     'real_conflict_amounts': real_conflict_amounts,
-                    'pull_request_groups_amounts': pull_request_groups_amounts
+                    'pull_request_groups_amounts': pull_request_groups_amounts,
+                    'pull_request_groups_by_datasets': pull_request_groups_by_datasets
                     }
 
         return Response(response)

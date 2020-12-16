@@ -201,19 +201,18 @@ class PairwiseConflictGraphAnalyzer(object):
         print(graph)
         return graph
                 
-    def get_amount_of_colors(self):
+    def get_groups_weight(self):
         path = '/home/aolmedo/phd/repo/matrix'
         self.save_graph(path)
+        groups = []
         result = subprocess.run(['java','-jar', 'matrix.jar'],
                                 cwd=path, capture_output=True)
 
-        regex = 'colors = (?P<colors>\d+)'
-        m = re.match(regex, result.stdout.decode('utf-8'))
-        if m:
-            colors = int(m.groupdict().get('colors', 0))
-        else:
-            colors = 0
-        return colors
+        groups_str = result.stdout.decode('utf-8').split('\n')[:-1]
+        for group_str in groups_str:
+            groups.append(group_str.split(','))
+
+        return [len(group) for group in groups]
 
 
     def save_graph(self, path):

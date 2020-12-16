@@ -19,58 +19,78 @@ window.onload = function() {
             var pairwise_conflict_amounts_dataset = response.responseJSON.pairwise_conflict_amounts;
             var real_conflict_amounts_dataset = response.responseJSON.real_conflict_amounts;
             var pull_request_groups_amounts_dataset = response.responseJSON.pull_request_groups_amounts;
+            var pull_request_groups_by_datasets = response.responseJSON.pull_request_groups_by_datasets;
 
             var color = Chart.helpers.color;
 
             var barChartData = {
                 labels: labels,
                 datasets: [{
-                        label: '#PR',
-                        backgroundColor: color(window.chartColors.blue).alpha(0.5).rgbString(),
-                        borderColor: window.chartColors.blue,
-                        borderWidth: 1,
-                        data: pr_amounts_dataset
-                    }, {
-                        label: '#PR Merged',
-                        backgroundColor: color(window.chartColors.green).alpha(0.5).rgbString(),
-                        borderColor: window.chartColors.green,
-                        borderWidth: 1,
-                        data: merged_pr_amounts_dataset
-                    }, //{
-                    //     label: '#PR Not Merged',
-                    //     backgroundColor: color(window.chartColors.grey).alpha(0.5).rgbString(),
-                    //     borderColor: window.chartColors.grey,
-                    //     borderWidth: 1,
-                    //     data: not_merged_pr_amounts_dataset
-                    // }, 
-                    {
-                        label: '#PR With Conflicts',
-                        backgroundColor: color(window.chartColors.yellow).alpha(0.5).rgbString(),
-                        borderColor: window.chartColors.yellow,
-                        borderWidth: 1,
-                        data: conflicting_pr_amounts_dataset
-                    }, {
-                        label: '#Pairwise Conflicts',
-                        backgroundColor: color(window.chartColors.orange).alpha(0.5).rgbString(),
-                        borderColor: window.chartColors.orange,
-                        borderWidth: 1,
-                        data: pairwise_conflict_amounts_dataset
-                    }, {
-                        label: '#Historical PR Conflicts',
-                        backgroundColor: color(window.chartColors.red).alpha(0.5).rgbString(),
-                        borderColor: window.chartColors.red,
-                        borderWidth: 1,
-                        data: real_conflict_amounts_dataset
-                    }, {
-                        label: '#PR Groups',
-                        backgroundColor: color(window.chartColors.purple).alpha(0.5).rgbString(),
-                        borderColor: window.chartColors.purple,
-                        borderWidth: 1,
-                        data: pull_request_groups_amounts_dataset
-                    }
-                ]
+                    label: '#PR Merged',
+                    stack: 'Stack 0',
+                    backgroundColor: color(window.chartColors.green).alpha(0.5).rgbString(),
+                    borderColor: window.chartColors.green,
+                    borderWidth: 1,
+                    data: merged_pr_amounts_dataset
+                }, {
+                    label: '#PR Rejected',
+                    stack: 'Stack 0',
+                    backgroundColor: color(window.chartColors.grey).alpha(0.5).rgbString(),
+                    borderColor: window.chartColors.grey,
+                    borderWidth: 1,
+                    data: not_merged_pr_amounts_dataset
+                }, {
+                    label: '#PR With Conflicts',
+                    stack: 'Stack 1',
+                    backgroundColor: color(window.chartColors.yellow).alpha(0.5).rgbString(),
+                    borderColor: window.chartColors.yellow,
+                    borderWidth: 1,
+                    data: conflicting_pr_amounts_dataset
+                }, {
+                    label: '#Pairwise Conflicts',
+                    stack: 'Stack 2',
+                    backgroundColor: color(window.chartColors.orange).alpha(0.5).rgbString(),
+                    borderColor: window.chartColors.orange,
+                    borderWidth: 1,
+                    data: pairwise_conflict_amounts_dataset
+                }, {
+                    label: '#Historical PR Conflicts',
+                    stack: 'Stack 3',
+                    backgroundColor: color(window.chartColors.red).alpha(0.5).rgbString(),
+                    borderColor: window.chartColors.red,
+                    borderWidth: 1,
+                    data: real_conflict_amounts_dataset
+                }, {
+                    label: '#PR Groups',
+                    stack: 'Stack 4',
+                    backgroundColor: color(window.chartColors.blue).alpha(0.5).rgbString(),
+                    borderColor: window.chartColors.blue,
+                    borderWidth: 1,
+                    data: pull_request_groups_amounts_dataset
+                }]
 
             };
+
+            var colorNames = Object.keys(window.chartColors);
+
+            pull_request_groups_by_datasets.forEach(function(pull_request_groups_by_dataset, index) {
+                console.log(index);
+                var colorName = colorNames[index % colorNames.length];
+                var dsColor = window.chartColors[colorName];
+                var new_dataset = [{
+                    label: 'Group ' + String(index + 1),
+                    stack: 'Stack 5',
+                    backgroundColor: color(dsColor).alpha(0.5).rgbString(),
+                    borderColor: dsColor,
+                    borderWidth: 1,
+                    data: pull_request_groups_by_dataset
+                }]
+                console.log(barChartData.datasets);
+                console.log(new_dataset);
+                barChartData.datasets = barChartData.datasets.concat(new_dataset);
+            });
+
+            console.log(barChartData);
 
             var ctx = document.getElementById('canvas').getContext('2d');
             window.myBar = new Chart(ctx, {
@@ -78,6 +98,14 @@ window.onload = function() {
                 data: barChartData,
                 options: {
                     responsive: true,
+                    scales: {
+                        xAxes: [{
+                            stacked: true,
+                        }],
+                        yAxes: [{
+                            stacked: true
+                        }]
+                    },
                     plugins: {
                         legend: {
                             position: 'top',
