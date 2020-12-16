@@ -6,7 +6,7 @@ from rest_framework.response import Response
 # from rest_framework import authentication, permissions
 
 from pull_request_conflicts.ghtorrent import GHTorrentDB
-from pull_request_conflicts.conflict_analyzer import PairwiseConflictGraphAnalyzer
+from pull_request_conflicts.conflict_analyzer import PairwiseConflictAnalyzer, PairwiseConflictGraphAnalyzer
 
 
 class PullRequestsDatasets(APIView):
@@ -48,8 +48,9 @@ class PullRequestsDatasets(APIView):
         table_name = '{}_pull_requests'.format(project_name)
         ghtorrent_db = GHTorrentDB(table_name)
         
-        pairwise_conflict_by_pull_request = self.get_pairwise_conflict_by_pull_request(project_name)
-        conflict_by_pull_request = self.get_conflict_by_pull_requests(project_name)
+        pairwise_conflict_analyzer = PairwiseConflictAnalyzer(project_name=project_name)
+        pairwise_conflict_by_pull_request = pairwise_conflict_analyzer.get_pairwise_conflict_by_pull_request()
+        conflict_by_pull_request = pairwise_conflict_analyzer.get_conflict_by_pull_requests()
 
         labels = [a_date.strftime('%Y-%m-%d') for a_date in periods] 
         
@@ -118,36 +119,3 @@ class PullRequestsDatasets(APIView):
                     }
 
         return Response(response)
-
-    def get_pairwise_conflict_by_pull_request(self, project_name):
-        filename = '/home/aolmedo/phd/repo/pull-request-conflicts/data/{}_pairwise_conflict_by_pull_request.csv'.format(project_name)
-
-        pairwise_conflict_by_pull_request = {}
-
-        with open(filename, 'r') as csv_file:
-            csv_reader = csv.reader(csv_file)
-            for row in csv_reader:
-                pr_key = row[0]
-                if row[1]:
-                    pr_value = row[1].split(',')
-                else:
-                    pr_value = []
-                pairwise_conflict_by_pull_request[pr_key] = pr_value
-
-        return pairwise_conflict_by_pull_request
-
-    def get_conflict_by_pull_requests(self, project_name):
-        filename = '/home/aolmedo/phd/repo/pull-request-conflicts/data/{}_pull_request_conflict.csv'.format(project_name)
-
-        pull_request_conflicts = {}
-
-        with open(filename, 'r') as csv_file:
-            csv_reader = csv.reader(csv_file)
-            for row in csv_reader:
-                pr_key = row[0]
-                pr_value = int(row[1])
-                pull_request_conflicts[pr_key] = pr_value
-
-        return pull_request_conflicts
-
-            

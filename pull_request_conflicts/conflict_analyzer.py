@@ -78,9 +78,9 @@ class PairwiseConflictAnalyzer(object):
     """
     """
 
-    def __init__(self, project_name, repo_path, repo_head=None):
+    def __init__(self, project_name, repo_path=None, repo_head=None):
         self.project_name = project_name
-        self.repo_path = repo_path
+        self.repo_path = repo_path if repo_path else ''
         self.repo_head = repo_head if repo_head else 'master'
         self.pull_request_table_name = "{}_pull_requests".format(project_name)
 
@@ -175,12 +175,44 @@ class PairwiseConflictAnalyzer(object):
 
         return ret
 
+    def get_pairwise_conflict_by_pull_request(self):
+        filename = '/home/aolmedo/phd/repo/pull-request-conflicts/data/{}_pairwise_conflict_by_pull_request.csv'.format(self.project_name)
+
+        pairwise_conflict_by_pull_request = {}
+
+        with open(filename, 'r') as csv_file:
+            csv_reader = csv.reader(csv_file)
+            for row in csv_reader:
+                pr_key = row[0]
+                if row[1]:
+                    pr_value = row[1].split(',')
+                else:
+                    pr_value = []
+                pairwise_conflict_by_pull_request[pr_key] = pr_value
+
+        return pairwise_conflict_by_pull_request
+
+    def get_conflict_by_pull_requests(self):
+        filename = '/home/aolmedo/phd/repo/pull-request-conflicts/data/{}_pull_request_conflict.csv'.format(self.project_name)
+
+        pull_request_conflicts = {}
+
+        with open(filename, 'r') as csv_file:
+            csv_reader = csv.reader(csv_file)
+            for row in csv_reader:
+                pr_key = row[0]
+                pr_value = int(row[1])
+                pull_request_conflicts[pr_key] = pr_value
+
+        return pull_request_conflicts
+
 
 class PairwiseConflictGraphAnalyzer(object):
 
     def __init__(self, project_name, pull_requests):
         self.project_name = project_name
-        self.pairwise_conflict_by_pull_request = self.get_pairwise_conflict_by_pull_request()
+        pairwise_conflict_analyzer = PairwiseConflictAnalyzer(project_name=project_name)
+        self.pairwise_conflict_by_pull_request = pairwise_conflict_analyzer.get_pairwise_conflict_by_pull_request()
         self.pull_request_ids = [str(pr.pullreq_id) for pr in pull_requests]
         self.graph = self.make_graph(pull_requests)
     
@@ -214,7 +246,6 @@ class PairwiseConflictGraphAnalyzer(object):
 
         return [len(group) for group in groups]
 
-
     def save_graph(self, path):
         filename = '{}/matrix.csv'.format(path)
         with open(filename, 'w') as csv_file:
@@ -222,21 +253,3 @@ class PairwiseConflictGraphAnalyzer(object):
             csv_writer.writerow(['0'] + self.pull_request_ids)
             for i in range(len(self.pull_request_ids)):
                 csv_writer.writerow([self.pull_request_ids[i]] + self.graph[i])
-            
-
-    def get_pairwise_conflict_by_pull_request(self):
-        filename = '/home/aolmedo/phd/repo/pull-request-conflicts/data/{}_pairwise_conflict_by_pull_request.csv'.format(self.project_name)
-
-        pairwise_conflict_by_pull_request = {}
-
-        with open(filename, 'r') as csv_file:
-            csv_reader = csv.reader(csv_file)
-            for row in csv_reader:
-                pr_key = row[0]
-                if row[1]:
-                    pr_value = row[1].split(',')
-                else:
-                    pr_value = []
-                pairwise_conflict_by_pull_request[pr_key] = pr_value
-
-        return pairwise_conflict_by_pull_request
