@@ -45,8 +45,6 @@ class PullRequestsDatasets(APIView):
             current_date = current_date + datetime.timedelta(days=time_interval)
         periods.append(date_to)
 
-        MAX_COLORS = 7
-
         table_name = '{}_pull_requests'.format(project_name)
         ghtorrent_db = GHTorrentDB(table_name)
         
@@ -95,13 +93,17 @@ class PullRequestsDatasets(APIView):
             graph = PairwiseConflictGraphAnalyzer(project_name, pull_requests)
             pull_request_groups = graph.get_groups_weight()
             pull_request_groups_amounts.append(len(pull_request_groups))
-            pull_request_groups_by_period.append(pull_request_groups + [0] * (MAX_COLORS - len(pull_request_groups)))
+            pull_request_groups_by_period.append(pull_request_groups)
 
+        MAX_COLORS = max([len(group) for group in pull_request_groups_by_period])
         pull_request_groups_by_datasets = []
         for i in range(MAX_COLORS):
             pull_request_groups_by_dataset = []
             for groups in pull_request_groups_by_period:
-                pull_request_groups_by_dataset.append(groups[i])
+                if i < len(groups):
+                    pull_request_groups_by_dataset.append(groups[i])
+                else:
+                    pull_request_groups_by_dataset.append(0)
             pull_request_groups_by_datasets.append(pull_request_groups_by_dataset)
 
         response = {'labels': labels,

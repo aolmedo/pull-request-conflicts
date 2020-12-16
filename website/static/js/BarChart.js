@@ -85,12 +85,9 @@ window.onload = function() {
                     borderWidth: 1,
                     data: pull_request_groups_by_dataset
                 }]
-                console.log(barChartData.datasets);
-                console.log(new_dataset);
+
                 barChartData.datasets = barChartData.datasets.concat(new_dataset);
             });
-
-            console.log(barChartData);
 
             var ctx = document.getElementById('canvas').getContext('2d');
             window.myBar = new Chart(ctx, {
