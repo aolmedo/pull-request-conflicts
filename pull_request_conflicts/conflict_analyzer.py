@@ -3,29 +3,46 @@ import datetime
 import subprocess
 import csv
 import re
+from . import settings
 from .ghtorrent import GHTorrentDB
 from .git_cmd import GitCommandLineInterface
 
 
-class PullRequestConflcitAnalyzer(object):
+class PullRequestConflictAnalyzer(object):
     """
         class
     """
 
-    def __init__(self, project_name, repo_path, repo_head=None):
+    def __init__(self, project_name, repo_path=None, repo_head=None):
         self.project_name = project_name
-        self.repo_path = repo_path
+        self.repo_path = repo_path if repo_path else ''
         self.repo_head = repo_head if repo_head else 'master'
         self.pull_request_table_name = "{}_pull_requests".format(project_name)
+        self.data_path = settings.DATA_PATH
+        self.base_filename = 'pull_request_conflict'
 
         self.ghtorrent_db = GHTorrentDB(pull_request_table_name=self.pull_request_table_name)
         self.git = GitCommandLineInterface(repo_path=self.repo_path, repo_head=self.repo_head)
 
+    def get_conflict_by_pull_requests(self):
+        filename = '{}/{}_{}.csv'.format(self.data_path, self.project_name, self.base_filename)
+
+        pull_request_conflicts = {}
+
+        with open(filename, 'r') as csv_file:
+            csv_reader = csv.reader(csv_file)
+            for row in csv_reader:
+                pr_key = row[0]
+                pr_value = int(row[1])
+                pull_request_conflicts[pr_key] = pr_value
+
+        return pull_request_conflicts
+
     def export_pull_request_conflict_table(self, date_from, date_to):
         date_from_str = date_from.strftime('%Y%m%d')
         date_to_str = date_to.strftime('%Y%m%d')
-        filename = '{}_pull_request_conflict_{}_{}.csv'.format(self.project_name,
-                                                               date_from_str, date_to_str)
+        filename = '{}/{}_{}_{}_{}.csv'.format(self.data_path, self.project_name,
+                                               self.base_filename, date_from_str, date_to_str)
 
         pull_requests = self.ghtorrent_db.get_merged_pull_requests_between(date_from, date_to)
 
@@ -33,7 +50,7 @@ class PullRequestConflcitAnalyzer(object):
 
         with open(filename, 'w') as csv_file:
             csv_writer = csv.writer(csv_file)
-            csv_writer.writerow(['Pull Request ID', 'Amount of conflicting merges'])
+            # csv_writer.writerow(['Pull Request ID', 'Amount of conflicting merges'])
             for pull_request_conflict in pull_request_conflicts:
                 csv_writer.writerow(pull_request_conflict)
 
@@ -83,9 +100,28 @@ class PairwiseConflictAnalyzer(object):
         self.repo_path = repo_path if repo_path else ''
         self.repo_head = repo_head if repo_head else 'master'
         self.pull_request_table_name = "{}_pull_requests".format(project_name)
+        self.data_path = settings.DATA_PATH
+        self.base_filename = 'pairwise_conflict_by_pull_request'
 
         self.ghtorrent_db = GHTorrentDB(pull_request_table_name=self.pull_request_table_name)
         self.git = GitCommandLineInterface(repo_path=self.repo_path, repo_head=self.repo_head)
+
+    def get_pairwise_conflict_by_pull_request(self):
+        filename = '{}/{}_{}.csv'.format(self.data_path, self.project_name, self.base_filename)
+
+        pairwise_conflict_by_pull_request = {}
+
+        with open(filename, 'r') as csv_file:
+            csv_reader = csv.reader(csv_file)
+            for row in csv_reader:
+                pr_key = row[0]
+                if row[1]:
+                    pr_value = row[1].split(',')
+                else:
+                    pr_value = []
+                pairwise_conflict_by_pull_request[pr_key] = pr_value
+
+        return pairwise_conflict_by_pull_request
 
     def export_pairwise_conflict_table(self, date_from, date_to):
         date_from_str = date_from.strftime('%Y%m%d')
@@ -104,8 +140,8 @@ class PairwiseConflictAnalyzer(object):
     def export_pairwise_conflict_by_pull_request(self, date_from, date_to):
         date_from_str = date_from.strftime('%Y%m%d')
         date_to_str = date_to.strftime('%Y%m%d')
-        filename = '{}_pairwise_conflict_{}_{}.csv'.format(self.project_name,
-                                                           date_from_str, date_to_str)
+        filename = '{}_pairwise_conflict_by_pull_request_{}_{}.csv'.format(self.project_name,
+                                                                           date_from_str, date_to_str)
 
         pull_requests = self.ghtorrent_db.get_pull_requests_between(date_from, date_to)
         pairwise_conflict_by_pull_request = self.calculate_pull_request_pairwise_conflicts(pull_requests)
@@ -175,37 +211,6 @@ class PairwiseConflictAnalyzer(object):
 
         return ret
 
-    def get_pairwise_conflict_by_pull_request(self):
-        filename = '/home/aolmedo/phd/repo/pull-request-conflicts/data/{}_pairwise_conflict_by_pull_request.csv'.format(self.project_name)
-
-        pairwise_conflict_by_pull_request = {}
-
-        with open(filename, 'r') as csv_file:
-            csv_reader = csv.reader(csv_file)
-            for row in csv_reader:
-                pr_key = row[0]
-                if row[1]:
-                    pr_value = row[1].split(',')
-                else:
-                    pr_value = []
-                pairwise_conflict_by_pull_request[pr_key] = pr_value
-
-        return pairwise_conflict_by_pull_request
-
-    def get_conflict_by_pull_requests(self):
-        filename = '/home/aolmedo/phd/repo/pull-request-conflicts/data/{}_pull_request_conflict.csv'.format(self.project_name)
-
-        pull_request_conflicts = {}
-
-        with open(filename, 'r') as csv_file:
-            csv_reader = csv.reader(csv_file)
-            for row in csv_reader:
-                pr_key = row[0]
-                pr_value = int(row[1])
-                pull_request_conflicts[pr_key] = pr_value
-
-        return pull_request_conflicts
-
 
 class PairwiseConflictGraphAnalyzer(object):
 
@@ -214,6 +219,7 @@ class PairwiseConflictGraphAnalyzer(object):
         pairwise_conflict_analyzer = PairwiseConflictAnalyzer(project_name=project_name)
         self.pairwise_conflict_by_pull_request = pairwise_conflict_analyzer.get_pairwise_conflict_by_pull_request()
         self.pull_request_ids = [str(pr.pullreq_id) for pr in pull_requests]
+        self.conflict_matrix_path = settings.CONFLICT_MATRIX_PATH
         self.graph = self.make_graph(pull_requests)
     
     def make_graph(self, pull_requests):
@@ -234,11 +240,10 @@ class PairwiseConflictGraphAnalyzer(object):
         return graph
                 
     def get_groups_weight(self):
-        path = '/home/aolmedo/phd/repo/matrix'
-        self.save_graph(path)
+        self.save_graph()
         groups = []
         result = subprocess.run(['java','-jar', 'matrix.jar'],
-                                cwd=path, capture_output=True)
+                                cwd=self.conflict_matrix_path, capture_output=True)
 
         groups_str = result.stdout.decode('utf-8').split('\n')[:-1]
         for group_str in groups_str:
@@ -246,8 +251,8 @@ class PairwiseConflictGraphAnalyzer(object):
 
         return [len(group) for group in groups]
 
-    def save_graph(self, path):
-        filename = '{}/matrix.csv'.format(path)
+    def save_graph(self):
+        filename = '{}/matrix.csv'.format(self.conflict_matrix_path)
         with open(filename, 'w') as csv_file:
             csv_writer = csv.writer(csv_file)
             csv_writer.writerow(['0'] + self.pull_request_ids)

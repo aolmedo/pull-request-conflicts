@@ -6,7 +6,7 @@ from rest_framework.response import Response
 # from rest_framework import authentication, permissions
 
 from pull_request_conflicts.ghtorrent import GHTorrentDB
-from pull_request_conflicts.conflict_analyzer import PairwiseConflictAnalyzer, PairwiseConflictGraphAnalyzer
+from pull_request_conflicts.conflict_analyzer import PullRequestConflictAnalyzer, PairwiseConflictAnalyzer, PairwiseConflictGraphAnalyzer
 
 
 class PullRequestsDatasets(APIView):
@@ -50,7 +50,9 @@ class PullRequestsDatasets(APIView):
         
         pairwise_conflict_analyzer = PairwiseConflictAnalyzer(project_name=project_name)
         pairwise_conflict_by_pull_request = pairwise_conflict_analyzer.get_pairwise_conflict_by_pull_request()
-        conflict_by_pull_request = pairwise_conflict_analyzer.get_conflict_by_pull_requests()
+
+        pull_request_conflict_analyzer = PullRequestConflictAnalyzer(project_name=project_name)
+        conflict_by_pull_request = pull_request_conflict_analyzer.get_conflict_by_pull_requests()
 
         labels = [a_date.strftime('%Y-%m-%d') for a_date in periods] 
         
