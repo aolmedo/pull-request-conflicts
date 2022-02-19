@@ -12,9 +12,9 @@ window.onload = function() {
 
         var response = $.ajax(api_url).done(function() {
             var labels = response.responseJSON.labels;
-            var pr_amounts_dataset = response.responseJSON.pr_amounts;
+            //var pr_amounts_dataset = response.responseJSON.pr_amounts;
             var merged_pr_amounts_dataset = response.responseJSON.merged_pr_amounts;
-            var not_merged_pr_amounts_dataset = response.responseJSON.not_merged_pr_amounts;
+            //var not_merged_pr_amounts_dataset = response.responseJSON.not_merged_pr_amounts;
             var conflicting_pr_amounts_dataset = response.responseJSON.conflicting_pr_amounts;
             var pairwise_conflict_amounts_dataset = response.responseJSON.pairwise_conflict_amounts;
             var real_conflict_amounts_dataset = response.responseJSON.real_conflict_amounts;
@@ -26,48 +26,53 @@ window.onload = function() {
             var barChartData = {
                 labels: labels,
                 datasets: [{
-                    label: '#PR Merged',
-                    stack: 'Stack 0',
-                    backgroundColor: color(window.chartColors.green).alpha(0.5).rgbString(),
-                    borderColor: window.chartColors.green,
-                    borderWidth: 1,
-                    data: merged_pr_amounts_dataset
-                }, {
-                    label: '#PR Rejected',
-                    stack: 'Stack 0',
-                    backgroundColor: color(window.chartColors.grey).alpha(0.5).rgbString(),
-                    borderColor: window.chartColors.grey,
-                    borderWidth: 1,
-                    data: not_merged_pr_amounts_dataset
-                }, {
-                    label: '#PR With Conflicts',
-                    stack: 'Stack 1',
-                    backgroundColor: color(window.chartColors.yellow).alpha(0.5).rgbString(),
-                    borderColor: window.chartColors.yellow,
-                    borderWidth: 1,
-                    data: conflicting_pr_amounts_dataset
-                }, {
-                    label: '#Pairwise Conflicts',
-                    stack: 'Stack 2',
-                    backgroundColor: color(window.chartColors.orange).alpha(0.5).rgbString(),
-                    borderColor: window.chartColors.orange,
-                    borderWidth: 1,
-                    data: pairwise_conflict_amounts_dataset
-                }, {
-                    label: '#Historical PR Conflicts',
-                    stack: 'Stack 3',
-                    backgroundColor: color(window.chartColors.red).alpha(0.5).rgbString(),
-                    borderColor: window.chartColors.red,
-                    borderWidth: 1,
-                    data: real_conflict_amounts_dataset
-                }, {
-                    label: '#PR Groups',
-                    stack: 'Stack 4',
-                    backgroundColor: color(window.chartColors.blue).alpha(0.5).rgbString(),
-                    borderColor: window.chartColors.blue,
-                    borderWidth: 1,
-                    data: pull_request_groups_amounts_dataset
-                }]
+                        label: '#PR Merged',
+                        stack: 'Stack 0',
+                        backgroundColor: color(window.chartColors.green).alpha(0.5).rgbString(),
+                        borderColor: window.chartColors.green,
+                        borderWidth: 1,
+                        data: merged_pr_amounts_dataset
+                    },
+                    /*{
+                                       label: '#PR Rejected',
+                                       stack: 'Stack 0',
+                                       backgroundColor: color(window.chartColors.grey).alpha(0.5).rgbString(),
+                                       borderColor: window.chartColors.grey,
+                                       borderWidth: 1,
+                                       data: not_merged_pr_amounts_dataset
+                                   },*/
+                    {
+                        label: '#PR With Conflicts',
+                        stack: 'Stack 1',
+                        backgroundColor: color(window.chartColors.yellow).alpha(0.5).rgbString(),
+                        borderColor: window.chartColors.yellow,
+                        borderWidth: 1,
+                        data: conflicting_pr_amounts_dataset
+                    }, {
+                        label: '#Pairwise Conflicts',
+                        stack: 'Stack 2',
+                        backgroundColor: color(window.chartColors.orange).alpha(0.5).rgbString(),
+                        borderColor: window.chartColors.orange,
+                        borderWidth: 1,
+                        data: pairwise_conflict_amounts_dataset
+                    },
+                    /*{
+                                           label: '#Historical PR Conflicts',
+                                           stack: 'Stack 3',
+                                           backgroundColor: color(window.chartColors.red).alpha(0.5).rgbString(),
+                                           borderColor: window.chartColors.red,
+                                           borderWidth: 1,
+                                           data: real_conflict_amounts_dataset
+                                       },*/
+                    {
+                        label: '#PR Groups',
+                        stack: 'Stack 4',
+                        backgroundColor: color(window.chartColors.blue).alpha(0.5).rgbString(),
+                        borderColor: window.chartColors.blue,
+                        borderWidth: 1,
+                        data: pull_request_groups_amounts_dataset
+                    }
+                ]
 
             };
 

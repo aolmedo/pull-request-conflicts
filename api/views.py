@@ -69,16 +69,16 @@ class PullRequestsDatasets(APIView):
             a_date_from = periods[idx]
             a_date_to = periods[idx + 1]
 
-            pr_amounts.append(ghtorrent_db.count_of_pull_requests_between(a_date_from, a_date_to))
-            merged_pr_amounts.append(ghtorrent_db.count_of_merged_pull_requests_between(a_date_from, a_date_to))
-            not_merged_pr_amounts.append(ghtorrent_db.count_of_not_merged_pull_requests_between(a_date_from, a_date_to))
+            # pr_amounts.append(ghtorrent_db.count_of_pull_requests_between(a_date_from, a_date_to))
+            merged_pr_amounts.append(ghtorrent_db.count_of_merged_pull_requests_closed_between(a_date_from, a_date_to))
+            # not_merged_pr_amounts.append(ghtorrent_db.count_of_not_merged_pull_requests_between(a_date_from, a_date_to))
 
             conflicting_pr_amount = 0
             pairwise_conflict_amount = 0
             real_conflict_amount = 0
             pull_request_groups = 0
 
-            pull_requests = ghtorrent_db.get_pull_requests_between(a_date_from, a_date_to)
+            pull_requests = ghtorrent_db.get_merged_pull_requests_closed_between(a_date_from, a_date_to)
             pull_request_ids = [str(pr.pullreq_id) for pr in pull_requests]
 
             for pull_request_id in pull_request_ids:
@@ -110,9 +110,9 @@ class PullRequestsDatasets(APIView):
             pull_request_groups_by_datasets.append(pull_request_groups_by_dataset)
 
         response = {'labels': labels,
-                    'pr_amounts': pr_amounts,
+                    # 'pr_amounts': pr_amounts,
                     'merged_pr_amounts': merged_pr_amounts,
-                    'not_merged_pr_amounts': not_merged_pr_amounts,
+                    # 'not_merged_pr_amounts': not_merged_pr_amounts,
                     'conflicting_pr_amounts': conflicting_pr_amounts,
                     'pairwise_conflict_amounts': pairwise_conflict_amounts,
                     'real_conflict_amounts': real_conflict_amounts,

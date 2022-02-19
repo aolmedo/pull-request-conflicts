@@ -18,7 +18,7 @@ class GHTorrentDB(object):
     def get_pull_requests(self):
         pull_requests = []
         query = "SELECT id, head_repo_id, base_repo_id, head_commit_id, base_commit_id, " \
-                "pullreq_id, intra_branch, merged, opened_at, closed_at FROM {} " \
+                "pullreq_id, intra_branch, merged, opened_at, closed_at, base_branch FROM {} " \
                 "ORDER BY opened_at".format(self.pull_request_table_name)
         with self.conn as conn:
             with conn.cursor() as cursor:
@@ -31,7 +31,7 @@ class GHTorrentDB(object):
     def get_merged_pull_requests(self):
         pull_requests = []
         query = "SELECT id, head_repo_id, base_repo_id, head_commit_id, base_commit_id, " \
-                "pullreq_id, intra_branch, merged, opened_at, closed_at FROM {} WHERE " \
+                "pullreq_id, intra_branch, merged, opened_at, closed_at, base_branch FROM {} WHERE " \
                 "merged = %(merged)s ORDER BY opened_at".format(self.pull_request_table_name)
         params = {'merged': True}
         with self.conn as conn:
@@ -45,8 +45,8 @@ class GHTorrentDB(object):
     def get_pull_requests_between(self, date_from, date_to):
         pull_requests = []
         query = "SELECT id, head_repo_id, base_repo_id, head_commit_id, base_commit_id, " \
-                "pullreq_id, intra_branch, merged, opened_at, closed_at FROM {} WHERE " \
-                "(opened_at < %(date_from)s AND closed_at > %(date_from)s) " \
+                "pullreq_id, intra_branch, merged, opened_at, closed_at, base_branch FROM {} WHERE " \
+                "(closed_at > %(date_from)s AND closed_at < %(date_to)s)" \
                 "OR (opened_at > %(date_from)s AND opened_at < %(date_to)s) " \
                 "ORDER BY opened_at".format(self.pull_request_table_name)
         params = {'date_from': date_from, 'date_to': date_to}
@@ -61,11 +61,27 @@ class GHTorrentDB(object):
     def get_merged_pull_requests_between(self, date_from, date_to):
         pull_requests = []
         query = "SELECT id, head_repo_id, base_repo_id, head_commit_id, base_commit_id, " \
-                "pullreq_id, intra_branch, merged, opened_at, closed_at FROM {} WHERE " \
+                "pullreq_id, intra_branch, merged, opened_at, closed_at, base_branch FROM {} WHERE " \
                 "merged = 't' AND " \
                 "((opened_at < %(date_from)s AND closed_at > %(date_from)s) " \
                 "OR (opened_at > %(date_from)s AND opened_at < %(date_to)s)) " \
                 "ORDER BY opened_at".format(self.pull_request_table_name)
+        params = {'date_from': date_from, 'date_to': date_to}
+        with self.conn as conn:
+            with conn.cursor() as cursor:
+                cursor.execute(query, params)
+                for pr_data in cursor.fetchall():
+                    pr = PullRequest(*pr_data)
+                    pull_requests.append(pr)
+        return pull_requests
+
+    def get_merged_pull_requests_closed_between(self, date_from, date_to):
+        pull_requests = []
+        query = "SELECT id, head_repo_id, base_repo_id, head_commit_id, base_commit_id, " \
+                "pullreq_id, intra_branch, merged, opened_at, closed_at, base_branch FROM {} WHERE " \
+                "merged = 't' AND " \
+                "(closed_at >= %(date_from)s AND closed_at <= %(date_to)s) " \
+                "ORDER BY closed_at".format(self.pull_request_table_name)
         params = {'date_from': date_from, 'date_to': date_to}
         with self.conn as conn:
             with conn.cursor() as cursor:
@@ -93,6 +109,18 @@ class GHTorrentDB(object):
                 "merged = 't' AND " \
                 "((opened_at < %(date_from)s AND closed_at > %(date_from)s) " \
                 "OR (opened_at > %(date_from)s AND opened_at < %(date_to)s)) ".format(self.pull_request_table_name)
+        params = {'date_from': date_from, 'date_to': date_to}
+        with self.conn as conn:
+            with conn.cursor() as cursor:
+                cursor.execute(query, params)
+                count = cursor.fetchone()[0]
+        return count
+
+    def count_of_merged_pull_requests_closed_between(self, date_from, date_to):
+        count = 0
+        query = "SELECT count(*) FROM {} WHERE " \
+                "merged = 't' AND " \
+                "(closed_at >= %(date_from)s AND closed_at <= %(date_to)s)".format(self.pull_request_table_name)
         params = {'date_from': date_from, 'date_to': date_to}
         with self.conn as conn:
             with conn.cursor() as cursor:
@@ -185,3 +213,11 @@ class GHTorrentDB(object):
             with conn.cursor() as cursor:
                 cursor.execute(query, {'id': pull_request.id,
                                        'merge_conflict_amount': merge_conflict_amount})
+
+    def set_pull_request_base_branch(self, pull_request):
+        query = "UPDATE {} SET base_branch = %(base_branch)s WHERE " \
+            "id = %(id)s".format(self.pull_request_table_name)
+        with self.conn as conn:
+            with conn.cursor() as cursor:
+                cursor.execute(query, {'id': pull_request.id,
+                                       'base_branch': pull_request.base_branch})

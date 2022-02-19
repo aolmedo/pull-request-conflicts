@@ -10,7 +10,7 @@ from .git_cmd import GitCommandLineInterface
 
 class PullRequestConflictAnalyzer(object):
     """
-        class
+        Analiza cuantos conflictos tuvo cada PR
     """
 
     def __init__(self, project_name, repo_path=None, repo_head=None):
@@ -129,7 +129,7 @@ class PairwiseConflictAnalyzer(object):
         filename = '{}_pairwise_conflict_{}_{}.csv'.format(self.project_name,
                                                            date_from_str, date_to_str)
 
-        pull_requests = self.ghtorrent_db.get_pull_requests_between(date_from, date_to)
+        pull_requests = self.ghtorrent_db.get_merged_pull_requests_between(date_from, date_to)
         pairwise_conflict_table = self.calculate_pairwise_conflict_table(pull_requests)
         with open(filename, 'w') as csv_file:
             csv_writer = csv.writer(csv_file)
@@ -143,7 +143,7 @@ class PairwiseConflictAnalyzer(object):
         filename = '{}_pairwise_conflict_by_pull_request_{}_{}.csv'.format(self.project_name,
                                                                            date_from_str, date_to_str)
 
-        pull_requests = self.ghtorrent_db.get_pull_requests_between(date_from, date_to)
+        pull_requests = self.ghtorrent_db.get_merged_pull_requests_between(date_from, date_to)
         pairwise_conflict_by_pull_request = self.calculate_pull_request_pairwise_conflicts(pull_requests)
         with open(filename, 'w') as csv_file:
             csv_writer = csv.writer(csv_file)
@@ -177,6 +177,9 @@ class PairwiseConflictAnalyzer(object):
         # Buscar las versiones a mergear de cada pull requests
         # luego tratar de mergearlas
         ret = 0
+        if a_pull_request.base_branch != another_pull_request.base_branch:
+            return ret
+
         print("Merge entre PR #{} y PR #{}".format(a_pull_request.pullreq_id, another_pull_request.pullreq_id))
 
         #a_pull_request_commits = self.ghtorrent_db.get_pull_requests_commits(a_pull_request)
@@ -226,7 +229,7 @@ class PairwiseConflictGraphAnalyzer(object):
         graph = []
         # Row
         for a_pull_request in pull_requests:
-            a_pull_request_pairwise_conflict = self.pairwise_conflict_by_pull_request.get(str(a_pull_request.pullreq_id))
+            a_pull_request_pairwise_conflict = self.pairwise_conflict_by_pull_request.get(str(a_pull_request.pullreq_id), [])
             new_row = []
             # Column
             for another_pull_request in pull_requests:

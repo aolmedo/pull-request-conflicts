@@ -4,12 +4,12 @@ if __name__ == "__main__":
     import datetime
     from .conflict_analyzer import PullRequestConflictAnalyzer
 
-    date_from = datetime.date(2016, 1, 1)
+    date_from = datetime.date(2012, 1, 1)
     date_to = datetime.date(2019, 6, 1)
 
-    gradle_conflict_analyzer = PullRequestConflictAnalyzer(project_name='gradle',
-                                                          repo_path='/home/aolmedo/phd/projects/gradle',
-                                                          repo_head='master')
+    gradle_conflict_analyzer = PullRequestConflictAnalyzer(project_name='broadleaf',
+                                                          repo_path='/home/aolmedo/phd/projects/BroadleafCommerce',
+                                                          repo_head='develop-6.0.x')
     gradle_conflict_analyzer.export_pull_request_conflict_table(date_from, date_to)
 
     # qgis_conflict_analyzer = PullRequestConflictAnalyzer(project_name='qgis',
