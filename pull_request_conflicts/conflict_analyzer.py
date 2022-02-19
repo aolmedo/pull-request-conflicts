@@ -2,93 +2,9 @@
 import datetime
 import subprocess
 import csv
-import re
 from . import settings
 from .ghtorrent import GHTorrentDB
 from .git_cmd import GitCommandLineInterface
-
-
-class PullRequestConflictAnalyzer(object):
-    """
-        Analiza cuantos conflictos tuvo cada PR
-    """
-
-    def __init__(self, project_name, repo_path=None, repo_head=None):
-        self.project_name = project_name
-        self.repo_path = repo_path if repo_path else ''
-        self.repo_head = repo_head if repo_head else 'master'
-        self.pull_request_table_name = "{}_pull_requests".format(project_name)
-        self.data_path = settings.DATA_PATH
-        self.base_filename = 'pull_request_conflict'
-
-        self.ghtorrent_db = GHTorrentDB(pull_request_table_name=self.pull_request_table_name)
-        self.git = GitCommandLineInterface(repo_path=self.repo_path, repo_head=self.repo_head)
-
-    def get_conflict_by_pull_requests(self):
-        filename = '{}/{}_{}.csv'.format(self.data_path, self.project_name, self.base_filename)
-
-        pull_request_conflicts = {}
-
-        with open(filename, 'r') as csv_file:
-            csv_reader = csv.reader(csv_file)
-            for row in csv_reader:
-                pr_key = row[0]
-                pr_value = int(row[1])
-                pull_request_conflicts[pr_key] = pr_value
-
-        return pull_request_conflicts
-
-    def export_pull_request_conflict_table(self, date_from, date_to):
-        date_from_str = date_from.strftime('%Y%m%d')
-        date_to_str = date_to.strftime('%Y%m%d')
-        filename = '{}/{}_{}_{}_{}.csv'.format(self.data_path, self.project_name,
-                                               self.base_filename, date_from_str, date_to_str)
-
-        pull_requests = self.ghtorrent_db.get_merged_pull_requests_between(date_from, date_to)
-
-        pull_request_conflicts = self.analyze_pull_request_conflict(pull_requests)
-
-        with open(filename, 'w') as csv_file:
-            csv_writer = csv.writer(csv_file)
-            # csv_writer.writerow(['Pull Request ID', 'Amount of conflicting merges'])
-            for pull_request_conflict in pull_request_conflicts:
-                csv_writer.writerow(pull_request_conflict)
-
-    def analyze_pull_request_conflict(self, pull_requests):
-        pull_request_conflicts = []
-        
-        for pull_request in pull_requests:
-            # Buscar los commits que se hicieron durante la vida del PR
-            pull_request_commits = self.ghtorrent_db.get_pull_requests_commits(pull_request)
-            inner_merge_conflict_amount = self.get_inner_conflict_amount(pull_request_commits)
-            outer_merge_conflict_amount = self.get_outer_conflict_amount(pull_request_commits)
-            merge_conflict_amount = inner_merge_conflict_amount + outer_merge_conflict_amount
-            pull_request_conflicts.append([pull_request.pullreq_id, merge_conflict_amount])
-        return pull_request_conflicts
-
-    def get_inner_conflict_amount(self, pull_request_commits):
-        merge_conflict_amount = 0
-        for pull_request_commit in pull_request_commits:
-            commit_parents = self.ghtorrent_db.get_commit_parents(pull_request_commit.id)
-            if len(commit_parents) > 1:
-                a_commit = commit_parents[0]
-                another_commit = commit_parents[1]
-                if self.git.conflicting_merge(a_commit.sha, another_commit.sha):
-                    merge_conflict_amount += 1
-        return merge_conflict_amount
-
-    def get_outer_conflict_amount(self, pull_request_commits):
-        merge_conflict_amount = 0
-        for pull_request_commit in pull_request_commits:
-            commit_children = self.ghtorrent_db.get_commit_children(pull_request_commit.id)
-            for commit_child in commit_children:
-                commit_child_parents = self.ghtorrent_db.get_commit_parents(commit_child.id)
-                if len(commit_child_parents) > 1:
-                    a_commit = commit_child_parents[0]
-                    another_commit = commit_child_parents[1]
-                    if self.git.conflicting_merge(a_commit.sha, another_commit.sha):
-                        merge_conflict_amount += 1
-        return merge_conflict_amount
 
 
 class PairwiseConflictAnalyzer(object):

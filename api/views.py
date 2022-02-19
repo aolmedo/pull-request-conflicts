@@ -6,7 +6,7 @@ from rest_framework.response import Response
 # from rest_framework import authentication, permissions
 
 from pull_request_conflicts.ghtorrent import GHTorrentDB
-from pull_request_conflicts.conflict_analyzer import PullRequestConflictAnalyzer, PairwiseConflictAnalyzer, PairwiseConflictGraphAnalyzer
+from pull_request_conflicts.conflict_analyzer import PairwiseConflictAnalyzer, PairwiseConflictGraphAnalyzer
 
 
 class PullRequestsDatasets(APIView):
@@ -51,17 +51,11 @@ class PullRequestsDatasets(APIView):
         pairwise_conflict_analyzer = PairwiseConflictAnalyzer(project_name=project_name)
         pairwise_conflict_by_pull_request = pairwise_conflict_analyzer.get_pairwise_conflict_by_pull_request()
 
-        pull_request_conflict_analyzer = PullRequestConflictAnalyzer(project_name=project_name)
-        conflict_by_pull_request = pull_request_conflict_analyzer.get_conflict_by_pull_requests()
-
         labels = [a_date.strftime('%Y-%m-%d') for a_date in periods] 
-        
-        pr_amounts = []
+
         merged_pr_amounts = []
-        not_merged_pr_amounts = []
         conflicting_pr_amounts = []
         pairwise_conflict_amounts = []
-        real_conflict_amounts = []
         pull_request_groups_amounts = []
         pull_request_groups_by_period = []
 
@@ -69,14 +63,10 @@ class PullRequestsDatasets(APIView):
             a_date_from = periods[idx]
             a_date_to = periods[idx + 1]
 
-            # pr_amounts.append(ghtorrent_db.count_of_pull_requests_between(a_date_from, a_date_to))
             merged_pr_amounts.append(ghtorrent_db.count_of_merged_pull_requests_closed_between(a_date_from, a_date_to))
-            # not_merged_pr_amounts.append(ghtorrent_db.count_of_not_merged_pull_requests_between(a_date_from, a_date_to))
 
             conflicting_pr_amount = 0
             pairwise_conflict_amount = 0
-            real_conflict_amount = 0
-            pull_request_groups = 0
 
             pull_requests = ghtorrent_db.get_merged_pull_requests_closed_between(a_date_from, a_date_to)
             pull_request_ids = [str(pr.pullreq_id) for pr in pull_requests]
@@ -87,11 +77,9 @@ class PullRequestsDatasets(APIView):
                 pairwise_conflict_amount += len(pairwise_conflicts)
                 if len(pairwise_conflicts) > 0:
                     conflicting_pr_amount += 1
-                real_conflict_amount += conflict_by_pull_request.get(pull_request_id, 0)
 
             conflicting_pr_amounts.append(conflicting_pr_amount)
             pairwise_conflict_amounts.append(int(pairwise_conflict_amount/2))
-            real_conflict_amounts.append(real_conflict_amount)
 
             graph = PairwiseConflictGraphAnalyzer(project_name, pull_requests)
             pull_request_groups = graph.get_groups_weight()
@@ -110,12 +98,9 @@ class PullRequestsDatasets(APIView):
             pull_request_groups_by_datasets.append(pull_request_groups_by_dataset)
 
         response = {'labels': labels,
-                    # 'pr_amounts': pr_amounts,
                     'merged_pr_amounts': merged_pr_amounts,
-                    # 'not_merged_pr_amounts': not_merged_pr_amounts,
                     'conflicting_pr_amounts': conflicting_pr_amounts,
                     'pairwise_conflict_amounts': pairwise_conflict_amounts,
-                    'real_conflict_amounts': real_conflict_amounts,
                     'pull_request_groups_amounts': pull_request_groups_amounts,
                     'pull_request_groups_by_datasets': pull_request_groups_by_datasets
                     }
