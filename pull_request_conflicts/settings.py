@@ -12,3 +12,4 @@ DB_PORT = '5432'
 CURRENT_PATH = os.path.abspath(os.path.dirname(__file__))
 DATA_PATH = os.path.join(CURRENT_PATH, '../data')
 CONFLICT_MATRIX_PATH = os.path.join(CURRENT_PATH, '../conflict_matrix')
+REPO_PATH = '/home/aolmedo/phd/projects'

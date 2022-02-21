@@ -13,7 +13,7 @@ class PairwiseConflictAnalyzer(object):
 
     def __init__(self, project_name, repo_path=None, repo_head=None):
         self.project_name = project_name
-        self.repo_path = repo_path if repo_path else ''
+        self.repo_path = repo_path if repo_path else '{}/{}'.format(settings.REPO_PATH, project_name)
         self.repo_head = repo_head if repo_head else 'master'
         self.pull_request_table_name = "{}_pull_requests".format(project_name)
         self.data_path = settings.DATA_PATH
@@ -23,6 +23,8 @@ class PairwiseConflictAnalyzer(object):
         self.git = GitCommandLineInterface(repo_path=self.repo_path, repo_head=self.repo_head)
 
     def get_pairwise_conflict_by_pull_request(self):
+        "deprecated"
+        "Lee del archivo generado, con que PRs tiene conflictos cada PR"
         filename = '{}/{}_{}.csv'.format(self.data_path, self.project_name, self.base_filename)
 
         pairwise_conflict_by_pull_request = {}
@@ -40,6 +42,7 @@ class PairwiseConflictAnalyzer(object):
         return pairwise_conflict_by_pull_request
 
     def export_pairwise_conflict_table(self, date_from, date_to):
+        "Deprecated"
         date_from_str = date_from.strftime('%Y%m%d')
         date_to_str = date_to.strftime('%Y%m%d')
         filename = '{}_pairwise_conflict_{}_{}.csv'.format(self.project_name,
@@ -54,6 +57,7 @@ class PairwiseConflictAnalyzer(object):
                 csv_writer.writerow([pull_requests[i].pullreq_id] + pr_row)
 
     def export_pairwise_conflict_by_pull_request(self, date_from, date_to):
+        "Deprecated"
         date_from_str = date_from.strftime('%Y%m%d')
         date_to_str = date_to.strftime('%Y%m%d')
         filename = '{}_pairwise_conflict_by_pull_request_{}_{}.csv'.format(self.project_name,
@@ -68,6 +72,8 @@ class PairwiseConflictAnalyzer(object):
                 csv_writer.writerow([k, prs])
 
     def calculate_pairwise_conflict_table(self, pull_requests):
+        "Deprecated"
+        "busca con que otros PRs conflictua cada PR.. pero busca en todos. no solo los abiertos en el mismo periodo"
         pairwise_conflict_table = []
 
         for a_pull_request in pull_requests:
@@ -79,6 +85,7 @@ class PairwiseConflictAnalyzer(object):
         return pairwise_conflict_table
 
     def calculate_pull_request_pairwise_conflicts(self, pull_requests):
+        "Deprecated"
         pairwise_conflict_by_pull_request = {}
         for pull_request in pull_requests:
             pairwise_conflict_pull_requests = []
@@ -135,25 +142,30 @@ class PairwiseConflictGraphAnalyzer(object):
 
     def __init__(self, project_name, pull_requests):
         self.project_name = project_name
-        pairwise_conflict_analyzer = PairwiseConflictAnalyzer(project_name=project_name)
-        self.pairwise_conflict_by_pull_request = pairwise_conflict_analyzer.get_pairwise_conflict_by_pull_request()
+        self.pairwise_conflict_analyzer = PairwiseConflictAnalyzer(project_name=project_name)
         self.pull_request_ids = [str(pr.pullreq_id) for pr in pull_requests]
+        self.edges = 0
+        self.potential_conflicting_prs = 0
         self.conflict_matrix_path = settings.CONFLICT_MATRIX_PATH
         self.graph = self.make_graph(pull_requests)
-    
+
     def make_graph(self, pull_requests):
         graph = []
         # Row
-        for a_pull_request in pull_requests:
-            a_pull_request_pairwise_conflict = self.pairwise_conflict_by_pull_request.get(str(a_pull_request.pullreq_id), [])
+        for r, a_pull_request in enumerate(pull_requests):
             new_row = []
             # Column
-            for another_pull_request in pull_requests:
-                if str(another_pull_request.pullreq_id) in a_pull_request_pairwise_conflict:
-                    value = 1 
-                else:
+            for c, another_pull_request in enumerate(pull_requests):
+                if c == r:
                     value = 0
+                elif c > r:  # get conflicts between PRs
+                    value = 1 if self.pairwise_conflict_analyzer.conflicting_pull_requests(a_pull_request, another_pull_request) > 0 else 0
+                    self.edges += value
+                else:  # already calculated
+                    value = graph[c][r]
                 new_row.append(value)
+            if sum(new_row) > 0:
+                self.potential_conflicting_prs += 1
             graph.append(new_row)
         print(graph)
         return graph

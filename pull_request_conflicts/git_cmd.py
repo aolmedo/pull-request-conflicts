@@ -27,7 +27,7 @@ class GitCommandLineInterface(object):
         """
             merge the commit @commit_sha into the current version.
         """
-        result = subprocess.run(['git','merge', commit_sha, '--no-commit', '--no-ff'],
+        result = subprocess.run(['git', 'merge', commit_sha, '--no-commit', '--no-ff'],
                                 cwd=self.repo_path, capture_output=True)
 
         stdout = result.stdout
@@ -43,7 +43,7 @@ class GitCommandLineInterface(object):
         """
             merge abort.
         """
-        result = subprocess.run(['git','merge', '--abort'],
+        result = subprocess.run(['git', 'merge', '--abort'],
                                 cwd=self.repo_path, capture_output=True)
         if result.returncode != 0:
             raise MergeAbortFail()
@@ -52,7 +52,7 @@ class GitCommandLineInterface(object):
         """
             checkout the commit @commit_sha
         """
-        result = subprocess.run(['git','checkout', commit_sha],
+        result = subprocess.run(['git', 'checkout', commit_sha],
                                 cwd=self.repo_path, capture_output=True)
         if result.returncode != 0:
             raise VersionNotFound(result.stderr)

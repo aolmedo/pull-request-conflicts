@@ -48,8 +48,9 @@ class PullRequestsDatasets(APIView):
         table_name = '{}_pull_requests'.format(project_name)
         ghtorrent_db = GHTorrentDB(table_name)
         
-        pairwise_conflict_analyzer = PairwiseConflictAnalyzer(project_name=project_name)
-        pairwise_conflict_by_pull_request = pairwise_conflict_analyzer.get_pairwise_conflict_by_pull_request()
+        # pairwise_conflict_analyzer = PairwiseConflictAnalyzer(project_name=project_name)
+        # TODO: Reemplazar por generación de la matriz de pairwise conflict . Calcuarlo abajo donde se usa
+        # pairwise_conflict_by_pull_request = pairwise_conflict_analyzer.get_pairwise_conflict_by_pull_request()
 
         labels = [a_date.strftime('%Y-%m-%d') for a_date in periods] 
 
@@ -69,19 +70,23 @@ class PullRequestsDatasets(APIView):
             pairwise_conflict_amount = 0
 
             pull_requests = ghtorrent_db.get_merged_pull_requests_closed_between(a_date_from, a_date_to)
-            pull_request_ids = [str(pr.pullreq_id) for pr in pull_requests]
+            # TODO: Construir matriz de Pairwise Conflict
+            # pull_request_ids = [str(pr.pullreq_id) for pr in pull_requests]
 
-            for pull_request_id in pull_request_ids:
-                pairwise_conflicts = pairwise_conflict_by_pull_request.get(pull_request_id, [])
-                pairwise_conflicts = list(filter(lambda x: x in pull_request_ids, pairwise_conflicts))
-                pairwise_conflict_amount += len(pairwise_conflicts)
-                if len(pairwise_conflicts) > 0:
-                    conflicting_pr_amount += 1
+            # for pull_request_id in pull_request_ids:
+                # TODO: reemplazar...
+            #     pairwise_conflicts = pairwise_conflict_by_pull_request.get(pull_request_id, [])
+            #    pairwise_conflicts = list(filter(lambda x: x in pull_request_ids, pairwise_conflicts))
+            #     pairwise_conflict_amount += len(pairwise_conflicts)
+            #     if len(pairwise_conflicts) > 0:
+            #        conflicting_pr_amount += 1
 
-            conflicting_pr_amounts.append(conflicting_pr_amount)
-            pairwise_conflict_amounts.append(int(pairwise_conflict_amount/2))
+            # conflicting_pr_amounts.append(conflicting_pr_amount)
+            # pairwise_conflict_amounts.append(int(pairwise_conflict_amount/2))
 
             graph = PairwiseConflictGraphAnalyzer(project_name, pull_requests)
+            conflicting_pr_amounts.append(graph.potential_conflicting_prs)
+            pairwise_conflict_amounts.append(graph.edges)
             pull_request_groups = graph.get_groups_weight()
             pull_request_groups_amounts.append(len(pull_request_groups))
             pull_request_groups_by_period.append(pull_request_groups)
