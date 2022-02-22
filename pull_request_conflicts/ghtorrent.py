@@ -157,21 +157,21 @@ class GHTorrentDB(object):
                     commits.append(commit)
         return commits
 
-    def get_commit_parents(self, commit_id):
-        commits = []
-        query = "SELECT parent_id FROM commit_parents where commit_id = %(commit_id)s;"
-        params = {'commit_id': commit_id}
-        commit_query = 'SELECT * FROM commits WHERE id = %(commit_id)s'
-        with self.conn as conn:
-            with conn.cursor() as cursor:
-                cursor.execute(query, params)
-                commit_ids = cursor.fetchall()
-                for commit_id in commit_ids:
-                    cursor.execute(commit_query, {'commit_id': commit_id})
-                    commit_data = cursor.fetchone()
-                    commit = Commit(*commit_data)
-                    commits.append(commit)
-        return commits
+    # def get_commit_parents(self, commit_id):
+    #     commits = []
+    #     query = "SELECT parent_id FROM commit_parents where commit_id = %(commit_id)s;"
+    #     params = {'commit_id': commit_id}
+    #     commit_query = 'SELECT * FROM commits WHERE id = %(commit_id)s'
+    #     with self.conn as conn:
+    #         with conn.cursor() as cursor:
+    #             cursor.execute(query, params)
+    #             commit_ids = cursor.fetchall()
+    #             for commit_id in commit_ids:
+    #                 cursor.execute(commit_query, {'commit_id': commit_id})
+    #                 commit_data = cursor.fetchone()
+    #                 commit = Commit(*commit_data)
+    #                 commits.append(commit)
+    #     return commits
 
     def get_commit(self, commit_id):
         commit = None
@@ -184,20 +184,21 @@ class GHTorrentDB(object):
                     commit = Commit(*commit_data)
         return commit
 
-    def get_pull_requests_commits(self, pull_request):
-        commits = []
-        query = "SELECT * FROM commits WHERE id IN " \
-            "(SELECT commit_id FROM pull_request_commits WHERE " \
-                "pull_request_id = %(pull_request_id)s) ORDER BY created_at"
-        params = {'pull_request_id': pull_request.id}
-        with self.conn as conn:
-            with conn.cursor() as cursor:
-                cursor.execute(query, params)
-                commits_data = cursor.fetchall()
-                for commit_data in commits_data:
-                    commit = Commit(*commit_data)
-                    commits.append(commit)
-        return commits
+    # def get_pull_requests_commits(self, pull_request):
+    #     "Deprecated"
+    #     commits = []
+    #     query = "SELECT * FROM commits WHERE id IN " \
+    #         "(SELECT commit_id FROM pull_request_commits WHERE " \
+    #             "pull_request_id = %(pull_request_id)s) ORDER BY created_at"
+    #     params = {'pull_request_id': pull_request.id}
+    #     with self.conn as conn:
+    #         with conn.cursor() as cursor:
+    #             cursor.execute(query, params)
+    #             commits_data = cursor.fetchall()
+    #             for commit_data in commits_data:
+    #                 commit = Commit(*commit_data)
+    #                 commits.append(commit)
+    #     return commits
 
     def set_pull_request_conflicting_merge(self, pull_request):
         query = "UPDATE {} SET conflicting_merge = 't' WHERE " \

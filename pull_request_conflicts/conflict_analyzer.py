@@ -85,11 +85,12 @@ class PairwiseConflictAnalyzer(object):
         return pairwise_conflict_table
 
     def calculate_pull_request_pairwise_conflicts(self, pull_requests):
-        "Deprecated"
+        "Calcula los conflictos de un PR con los otros PRs que se cerraron en el mismo periodo de tiempo"
         pairwise_conflict_by_pull_request = {}
         for pull_request in pull_requests:
             pairwise_conflict_pull_requests = []
-            prs = self.ghtorrent_db.get_pull_requests_between(pull_request.opened_at, pull_request.closed_at)
+            # prs = self.ghtorrent_db.get_pull_requests_between(pull_request.opened_at, pull_request.closed_at)
+            prs = self.ghtorrent_db.get_merged_pull_requests_closed_between(pull_request.opened_at, pull_request.closed_at)
             for pr in prs:
                 if self.conflicting_pull_requests(pull_request, pr) > 0:
                     pairwise_conflict_pull_requests.append(pr)
