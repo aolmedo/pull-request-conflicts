@@ -222,3 +222,8 @@ class GHTorrentDB(object):
             with conn.cursor() as cursor:
                 cursor.execute(query, {'id': pull_request.id,
                                        'base_branch': pull_request.base_branch})
+
+    def execute_query(self, query, params={}):
+        with self.conn as conn:
+            with conn.cursor() as cursor:
+                cursor.execute(query, params)
