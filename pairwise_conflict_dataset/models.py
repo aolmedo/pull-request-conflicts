@@ -32,7 +32,7 @@ class Project(models.Model):
 
 class Commit(models.Model):
     ghtorrent_id = models.PositiveIntegerField(_(u'GHTorrent ID'))
-    project = models.ForeignKey(Project, verbose_name="project", related_name='commits')
+    project = models.ForeignKey(Project, on_delete=models.PROTECT, verbose_name="project", related_name='commits')
     sha = models.CharField(_(u'sha'), max_length=40)
     created_at = models.DateTimeField(_(u'created at'))
 
@@ -51,16 +51,18 @@ class Commit(models.Model):
 
 class PullRequest(models.Model):
     ghtorrent_id = models.PositiveIntegerField(_(u'GHTorrent ID'))
-    project = models.ForeignKey(Project, verbose_name="project", related_name='pull_requests')
+    project = models.ForeignKey(Project, on_delete=models.PROTECT,
+                                verbose_name="project", related_name='pull_requests')
     github_id = models.PositiveIntegerField(_(u'github id'))
-    base_commit = models.ForeignKey(Commit, verbose_name="base commit", related_name='base_pull_requests')
-    head_commit = models.ForeignKey(Commit, null=True, blank=True,
+    base_commit = models.ForeignKey(Commit, on_delete=models.PROTECT,
+                                    verbose_name="base commit", related_name='base_pull_requests')
+    head_commit = models.ForeignKey(Commit, on_delete=models.PROTECT, null=True, blank=True,
                                     verbose_name="head commit", related_name='head_pull_requests')
     intra_branch = models.BooleanField(_(u'is intra branch?'))
     merged = models.BooleanField(_(u'is merged?'))
     opened_at = models.DateTimeField(_(u'opened at'))
     closed_at = models.DateTimeField(_(u'closed at'))
-    base_branch = models.CharField(_(u'target branch'), null=True, black=True)
+    base_branch = models.CharField(_(u'target branch'), max_length=255, null=True, blank=True)
     raw_data = models.JSONField(_(u'raw data'))
 
     class Meta:
@@ -84,9 +86,9 @@ class PullRequest(models.Model):
 
 
 class PairwiseConflict(models.Model):
-    first_pull_request = models.ForeignKey(PullRequest, verbose_name="first pull request",
+    first_pull_request = models.ForeignKey(PullRequest, on_delete=models.PROTECT, verbose_name="first pull request",
                                            related_name='first_pairwise_conflicts')
-    second_pull_request = models.ForeignKey(PullRequest, verbose_name="second pull request",
+    second_pull_request = models.ForeignKey(PullRequest, on_delete=models.PROTECT, verbose_name="second pull request",
                                             related_name='second_pairwise_conflicts')
 
     class Meta:
