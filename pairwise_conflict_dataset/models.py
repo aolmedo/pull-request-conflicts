@@ -35,6 +35,7 @@ class Commit(models.Model):
     project = models.ForeignKey(Project, on_delete=models.PROTECT, verbose_name="project", related_name='commits')
     sha = models.CharField(_(u'sha'), max_length=40)
     created_at = models.DateTimeField(_(u'created at'))
+    raw_data = models.JSONField(_(u'raw data'))
 
     class Meta:
         ordering = ["created_at"]
