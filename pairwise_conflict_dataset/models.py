@@ -14,6 +14,9 @@ class Project(models.Model):
     raw_data = models.JSONField(_(u'raw data'))
     github_raw_data = models.JSONField(_(u'github raw data'), null=True, blank=True)
 
+    def __str__(self):
+        return self.name
+
     class Meta:
         ordering = ["created_at"]
         verbose_name = _("project")
@@ -38,6 +41,9 @@ class Commit(models.Model):
     sha = models.CharField(_(u'sha'), max_length=40)
     created_at = models.DateTimeField(_(u'created at'))
     raw_data = models.JSONField(_(u'raw data'))
+
+    def __str__(self):
+        return self.sha
 
     class Meta:
         ordering = ["created_at"]
@@ -69,6 +75,9 @@ class PullRequest(models.Model):
     raw_data = models.JSONField(_(u'raw data'))
     github_raw_data = models.JSONField(_(u'github raw data'), null=True, blank=True)
 
+    def __str__(self):
+        return "#{}".format(self.github_id)
+
     class Meta:
         ordering = ["opened_at"]
         verbose_name = _("pull request")
@@ -94,6 +103,9 @@ class PairwiseConflict(models.Model):
                                            related_name='first_pairwise_conflicts')
     second_pull_request = models.ForeignKey(PullRequest, on_delete=models.PROTECT, verbose_name="second pull request",
                                             related_name='second_pairwise_conflicts')
+
+    def __str__(self):
+        return "Pairwise conflict between: {} and {}".format(self.first_pull_request, self.second_pull_request)
 
     class Meta:
         ordering = ["id"]
