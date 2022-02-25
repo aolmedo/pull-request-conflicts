@@ -21,20 +21,23 @@ class Command(BaseCommand):
         if options.get('directory_path'):
             directory_path = options.get('directory_path')
         else:
-            directory_path = settings.GHTORRENT_IMPORT_PATH + "/commits/"
+            directory_path = settings.GHTORRENT_IMPORT_PATH + "/pull_requests/"
         for project in projects:
             file_path = directory_path + "{}_pull_requests.csv".format(project.name.lower())
             with open(file_path, 'r') as pull_requests_file:
                 reader = csv.DictReader(pull_requests_file)
                 for pull_request_dict in reader:
+                    if not pull_request_dict.get('opened_at'):
+                        continue;
                     if not PullRequest.objects.filter(ghtorrent_id=pull_request_dict.get('id')).exists():
-                        head_commit = Commit.objects.filter(ghtorrent_id=pull_request_dict.get('base_commit_id'))
+                        base_commit = Commit.objects.filter(ghtorrent_id=pull_request_dict.get('base_commit_id') or 0)
+                        base_commit = base_commit[0] if base_commit else None
+                        head_commit = Commit.objects.filter(ghtorrent_id=pull_request_dict.get('head_commit_id') or 0)
                         head_commit = head_commit[0] if head_commit else None
                         PullRequest.objects.create(ghtorrent_id=pull_request_dict.get('id'),
                                                    project=project,
                                                    github_id=pull_request_dict.get('pullreq_id'),
-                                                   base_commit=Commit.objects.get(ghtorrent_id=pull_request_dict.
-                                                                                  get('base_commit_id')),
+                                                   base_commit=base_commit,
                                                    head_commit=head_commit,
                                                    intra_branch=(True if pull_request_dict.
                                                                  get('intra_branch') == 't' else False),
@@ -43,7 +46,7 @@ class Command(BaseCommand):
                                                    opened_at=datetime.datetime.strptime(pull_request_dict.
                                                                                         get('opened_at'),
                                                                                         '%Y-%m-%d %H:%M:%S'),
-                                                   closed_at=datetime.datetime.strptime(pull_request_dict.
-                                                                                        get('closed_at'),
-                                                                                        '%Y-%m-%d %H:%M:%S'),
+                                                   closed_at=(datetime.datetime.strptime(
+                                                       pull_request_dict.get('closed_at'), '%Y-%m-%d %H:%M:%S')
+                                                              if pull_request_dict.get('closed_at') else None),
                                                    raw_data=pull_request_dict)

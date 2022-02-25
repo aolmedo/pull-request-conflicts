@@ -57,14 +57,14 @@ class PullRequest(models.Model):
     project = models.ForeignKey(Project, on_delete=models.PROTECT,
                                 verbose_name="project", related_name='pull_requests')
     github_id = models.PositiveIntegerField(_(u'github id'))
-    base_commit = models.ForeignKey(Commit, on_delete=models.PROTECT,
+    base_commit = models.ForeignKey(Commit, on_delete=models.PROTECT, null=True, blank=True,
                                     verbose_name="base commit", related_name='base_pull_requests')
     head_commit = models.ForeignKey(Commit, on_delete=models.PROTECT, null=True, blank=True,
                                     verbose_name="head commit", related_name='head_pull_requests')
     intra_branch = models.BooleanField(_(u'is intra branch?'))
     merged = models.BooleanField(_(u'is merged?'))
     opened_at = models.DateTimeField(_(u'opened at'))
-    closed_at = models.DateTimeField(_(u'closed at'))
+    closed_at = models.DateTimeField(_(u'closed at'), null=True, blank=True)
     base_branch = models.CharField(_(u'target branch'), max_length=255, null=True, blank=True)
     raw_data = models.JSONField(_(u'raw data'))
     github_raw_data = models.JSONField(_(u'github raw data'), null=True, blank=True)
