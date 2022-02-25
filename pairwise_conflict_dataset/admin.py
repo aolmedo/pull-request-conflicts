@@ -24,6 +24,21 @@ class ProjectAdmin(admin.ModelAdmin):
     def commits_count(self, obj):
         return obj.commits.count()
 
+    @admin.display(ordering='pull_requests__first_pairwise_conflicts__count')
+    def pairwise_conflicts_count(self, obj):
+        # TODO: guardar en variable. Muy lento sino.
+        pairwise_conflicts_count = 0
+        for pull_request in obj.pull_requests.all():
+            pairwise_conflicts_count += pull_request.first_pairwise_conflicts.count() + \
+                                        pull_request.second_pairwise_conflicts.count()
+        return pairwise_conflicts_count / 2
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
 
 class CommitAdmin(admin.ModelAdmin):
     list_display = ('project', 'sha', 'created_at')
@@ -31,6 +46,12 @@ class CommitAdmin(admin.ModelAdmin):
     list_filter = ('project',)
     search_fields = ['project__name', ]
     readonly_fields = ('ghtorrent_id', 'project', 'sha', 'created_at', 'raw_data')
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
 
 
 class PullRequestAdmin(admin.ModelAdmin):
@@ -45,6 +66,12 @@ class PullRequestAdmin(admin.ModelAdmin):
     @admin.display(ordering='first_pairwise_conflicts__count')
     def pairwise_conflicts_count(self, obj):
         return obj.first_pairwise_conflicts.count() + obj.second_pairwise_conflicts.count()
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
 
 
 class PairwiseConflictAdmin(admin.ModelAdmin):
@@ -69,6 +96,12 @@ class PairwiseConflictAdmin(admin.ModelAdmin):
     @admin.display(ordering='second_pull_request__base_branch')
     def first_pull_request_base_branch(self, obj):
         return obj.second_pull_request.base_branch
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
 
 
 admin.site.register(Project, ProjectAdmin)
