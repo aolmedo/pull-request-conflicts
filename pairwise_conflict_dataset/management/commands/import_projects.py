@@ -26,7 +26,7 @@ class Command(BaseCommand):
                                            name=project_dict.get('name'),
                                            description=project_dict.get('description'),
                                            github_url=project_dict.get('url').replace('https://api.github.com/repos/',
-                                                                                      'https://github.com/repos/'),
+                                                                                      'https://github.com/'),
                                            api_url=project_dict.get('url'),
                                            language=project_dict.get('language'),
                                            created_at=datetime.datetime.strptime(project_dict.get('created_at'),

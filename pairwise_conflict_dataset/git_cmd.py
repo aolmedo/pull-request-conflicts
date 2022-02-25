@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import os
 import re
 import subprocess
 from pairwise_conflict_dataset import settings
@@ -25,14 +26,18 @@ class GitCommandLineInterface(object):
         Git Command Line Interface
     """
     def __init__(self, project):
+        self.repo_url = project.github_url
         self.repo_path = settings.REPOSITORIES_BASE_PATH + "/{}".format(project.name)
         self.repo_head = project.default_branch
 
-    def clone(self, repo_url):
+    def clone(self):
         """
             clone github repository
         """
-        result = subprocess.run(['git', 'clone', repo_url],
+        if os.path.isdir(self.repo_path):
+            return
+
+        result = subprocess.run(['git', 'clone', self.repo_url],
                                 cwd=settings.REPOSITORIES_BASE_PATH, capture_output=True)
         if result.returncode != 0:
             raise CloneFail()

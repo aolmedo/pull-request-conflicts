@@ -22,18 +22,6 @@ class Project(models.Model):
         verbose_name = _("project")
         verbose_name_plural = _("projects")
 
-    # self.id = idx -> ok
-    # self.url = url -> repo_url and api_url
-    # self.owner_id = owner_id -> raw_data
-    # self.name = name -> ok
-    # self.description = description -> ok
-    # self.language = language -> ok
-    # self.created_at = created_at -> ok
-    # self.forked_from = forked_from -> raw_data
-    # self.deleted = deleted -> raw_data
-    # self.updated_at = updated_at -> raw_data
-    # self.forked_commit_id = forked_commit_id -> raw_data
-
 
 class Commit(models.Model):
     ghtorrent_id = models.PositiveIntegerField(_(u'GHTorrent ID'))
@@ -49,13 +37,6 @@ class Commit(models.Model):
         ordering = ["created_at"]
         verbose_name = _("commit")
         verbose_name_plural = _("commits")
-
-    # self.id = idx -> ok
-    # self.sha = sha -> ok
-    # self.author_id = author_id -> raw_data
-    # self.committer_id = committer_id -> raw_data
-    # self.project_id = project_id -> Foreing Key to Project
-    # self.created_at = created_at -> ok
 
 
 class PullRequest(models.Model):
@@ -82,20 +63,6 @@ class PullRequest(models.Model):
         ordering = ["opened_at"]
         verbose_name = _("pull request")
         verbose_name_plural = _(u"pull requests")
-
-    # self.id = idx -> ok
-    # self.head_repo_id = head_repo_id -> raw_data
-    # self.base_repo_id = base_repo_id -> Foreing Key to Project
-    # self.head_commit_id = head_commit_id -> Foreign Key to Commit. Null. Blank.
-    # self.base_commit_id = base_commit_id -> Foreign Key to Commit. not null.
-    # self.pullreq_id = pullreq_id - > ok
-    # self.intra_branch = intra_branch -> ok
-    # self.merged = merged -> ok
-    # self.opened_at = opened_at -> ok
-    # self.closed_at = closed_at -> ok
-
-    # no viene de ghtorrent
-    # self.base_branch = base_branch -> ok. null. blank
 
 
 class PairwiseConflict(models.Model):
