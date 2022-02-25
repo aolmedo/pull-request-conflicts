@@ -10,6 +10,7 @@ class Project(models.Model):
     api_url = models.URLField(_(u'github api url'))
     language = models.CharField(_(u'language'), max_length=255)
     created_at = models.DateTimeField(_(u'created at'))
+    default_branch = models.CharField(_(u'default branch'), max_length=255, null=True, blank=True)
     raw_data = models.JSONField(_(u'raw data'))
 
     class Meta:

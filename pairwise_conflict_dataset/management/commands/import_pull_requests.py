@@ -7,7 +7,7 @@ from pairwise_conflict_dataset import settings
 
 
 class Command(BaseCommand):
-    help = 'Import commits from a csv file'
+    help = 'Import pull requests from a csv file'
 
     def add_arguments(self, parser):
         parser.add_argument('--directory_path', help="directory path")

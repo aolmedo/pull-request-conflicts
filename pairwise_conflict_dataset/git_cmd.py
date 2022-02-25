@@ -1,6 +1,11 @@
 # -*- coding: utf-8 -*-
 import re
 import subprocess
+from pairwise_conflict_dataset import settings
+
+
+class CloneFail(Exception):
+    pass
 
 
 class VersionNotFound(Exception):
@@ -19,9 +24,18 @@ class GitCommandLineInterface(object):
     """
         Git Command Line Interface
     """
-    def __init__(self, repo_path, repo_head):
-        self.repo_path = repo_path
-        self.repo_head = repo_head
+    def __init__(self, project):
+        self.repo_path = settings.REPOSITORIES_BASE_PATH + "/{}".format(project.name)
+        self.repo_head = project.default_branch
+
+    def clone(self, repo_url):
+        """
+            clone github repository
+        """
+        result = subprocess.run(['git', 'clone', repo_url],
+                                cwd=settings.REPOSITORIES_BASE_PATH, capture_output=True)
+        if result.returncode != 0:
+            raise CloneFail()
 
     def merge(self, commit_sha):
         """
@@ -75,6 +89,7 @@ class GitCommandLineInterface(object):
         try:
             self.merge_abort()
         except MergeAbortFail:
-            print("Ocurrio un problema al querer abortar el merge entre la version {} y la version {}".format(commit_sha_1, commit_sha_2))
+            print("Ocurrio un problema al querer abortar el merge entre la version {} y la version {}"
+                  .format(commit_sha_1, commit_sha_2))
         self.checkout(self.repo_head)
         return merge_conflict

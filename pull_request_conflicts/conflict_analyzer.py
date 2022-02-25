@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
-import datetime
 import subprocess
 import csv
 from . import settings
 from .ghtorrent import GHTorrentDB
-from .git_cmd import GitCommandLineInterface
+from pairwise_conflict_dataset.git_cmd import GitCommandLineInterface
 
 
 class PairwiseConflictAnalyzer(object):

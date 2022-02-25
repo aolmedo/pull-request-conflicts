@@ -7,7 +7,7 @@ from pairwise_conflict_dataset.github_api import GithubAPI
 
 
 class Command(BaseCommand):
-    help = 'Upgrade pull requests info'
+    help = 'Upgrade project info'
 
     def add_arguments(self, parser):
         parser.add_argument('--project_name', help="run command for one project")
@@ -19,14 +19,14 @@ class Command(BaseCommand):
             projects = Project.objects.filter(name=options.get('project_name'))
         else:
             projects = Project.objects.all()
-        for project in projects:
-            for pull_request in project.pull_requests.filter(base_branch__isnull=True):
-                pr_json = GithubAPI.get_pull_request_info(pull_request)
+
+        for project in projects.filter(default_branch__isnull=True):
+                pr_json = GithubAPI.get_project_info(project)
                 requests_count += 1
-                base_branch = pr_json and pr_json.get('base') and pr_json.get('base').get('label') or ''
-                print(pull_request.github_id, "->", base_branch)
-                pull_request.base_branch = base_branch
-                pull_request.save()
+                default_branch = pr_json and pr_json.get('default_branch') or 'main'
+                print(project.name, "->", default_branch)
+                project.default_branch = default_branch
+                project.save()
                 if requests_count >= 5000:
                     if options.get('wait_at_limit'):
                         time.sleep(3601)
