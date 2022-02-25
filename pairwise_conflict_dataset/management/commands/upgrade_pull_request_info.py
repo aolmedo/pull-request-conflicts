@@ -26,6 +26,7 @@ class Command(BaseCommand):
                 base_branch = pr_json and pr_json.get('base') and pr_json.get('base').get('label') or ''
                 print(pull_request.github_id, "->", base_branch)
                 pull_request.base_branch = base_branch
+                pull_request.github_raw_data = pr_json
                 pull_request.save()
                 if requests_count >= 5000:
                     if options.get('wait_at_limit'):

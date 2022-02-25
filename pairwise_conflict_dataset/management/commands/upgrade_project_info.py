@@ -20,16 +20,17 @@ class Command(BaseCommand):
         else:
             projects = Project.objects.all()
 
-        for project in projects.filter(default_branch__isnull=True):
-                pr_json = GithubAPI.get_project_info(project)
-                requests_count += 1
-                default_branch = pr_json and pr_json.get('default_branch') or 'main'
-                print(project.name, "->", default_branch)
-                project.default_branch = default_branch
-                project.save()
-                if requests_count >= 5000:
-                    if options.get('wait_at_limit'):
-                        time.sleep(3601)
-                        requests_count = 0
-                    else:
-                        return
+        for project in projects.filter(github_raw_data__isnull=True):
+            project_json = GithubAPI.get_project_info(project)
+            requests_count += 1
+            default_branch = project_json and project_json.get('default_branch') or 'main'
+            print(project.name, "->", default_branch)
+            project.default_branch = default_branch
+            project.github_raw_data = project_json
+            project.save()
+            if requests_count >= 5000:
+                if options.get('wait_at_limit'):
+                    time.sleep(3601)
+                    requests_count = 0
+                else:
+                    return

@@ -12,6 +12,7 @@ class Project(models.Model):
     created_at = models.DateTimeField(_(u'created at'))
     default_branch = models.CharField(_(u'default branch'), max_length=255, null=True, blank=True)
     raw_data = models.JSONField(_(u'raw data'))
+    github_raw_data = models.JSONField(_(u'github raw data'), null=True, blank=True)
 
     class Meta:
         ordering = ["created_at"]
@@ -66,6 +67,7 @@ class PullRequest(models.Model):
     closed_at = models.DateTimeField(_(u'closed at'))
     base_branch = models.CharField(_(u'target branch'), max_length=255, null=True, blank=True)
     raw_data = models.JSONField(_(u'raw data'))
+    github_raw_data = models.JSONField(_(u'github raw data'), null=True, blank=True)
 
     class Meta:
         ordering = ["opened_at"]
