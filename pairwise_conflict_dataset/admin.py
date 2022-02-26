@@ -1,5 +1,11 @@
+import json
 from django.contrib import admin
+from django.db.models import Count
+from django.db.models.functions import TruncDay
+from django.core.serializers.json import DjangoJSONEncoder
 from django.utils.html import mark_safe
+from django.http import JsonResponse
+from django.urls import path
 from pairwise_conflict_dataset.models import Project, Commit, PullRequest, PairwiseConflict
 
 
@@ -73,11 +79,30 @@ class PullRequestAdmin(admin.ModelAdmin):
     def has_delete_permission(self, request, obj=None):
         return False
 
+    def changelist_view(self, request, extra_context=None):
+        cl = self.get_changelist_instance(request)
+        result_list = [pc.id for pc in cl.queryset.all()]
+        # Aggregate new subscribers per day
+        chart_data = (
+            PullRequest.objects.filter(merged=True, id__in=result_list).annotate(date=TruncDay("closed_at"))
+            .values("date")
+            .annotate(y=Count("id"))
+            .order_by("-date")
+        )
+
+        # Serialize and attach the chart data to the template context
+        as_json = json.dumps(list(chart_data), cls=DjangoJSONEncoder)
+        extra_context = extra_context or {"chart_data": as_json}
+
+        # Call the superclass changelist_view to render the page
+        return super().changelist_view(request, extra_context=extra_context)
+
 
 class PairwiseConflictAdmin(admin.ModelAdmin):
     list_display = ('project', 'first_pull_request', 'second_pull_request', 'first_pull_request_head_commit',
                     'second_pull_request_head_commit', 'first_pull_request_base_branch',
                     'first_pull_request_closed_at', 'second_pull_request_closed_at')
+    date_hierarchy = 'first_pull_request__closed_at'
     readonly_fields = ('first_pull_request', 'second_pull_request',)
     search_fields = ['first_pull_request__github_id', 'second_pull_request__github_id',
                      'first_pull_request__project__name', 'first_pull_request__base_branch']
@@ -111,6 +136,24 @@ class PairwiseConflictAdmin(admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return False
+
+    def changelist_view(self, request, extra_context=None):
+        cl = self.get_changelist_instance(request)
+        result_list = [pc.id for pc in cl.queryset.all()]
+        # Aggregate new subscribers per day
+        chart_data = (
+            PairwiseConflict.objects.filter(id__in=result_list).annotate(date=TruncDay("first_pull_request__closed_at"))
+            .values("date")
+            .annotate(y=Count("id"))
+            .order_by("-date")
+        )
+
+        # Serialize and attach the chart data to the template context
+        as_json = json.dumps(list(chart_data), cls=DjangoJSONEncoder)
+        extra_context = extra_context or {"chart_data": as_json}
+
+        # Call the superclass changelist_view to render the page
+        return super().changelist_view(request, extra_context=extra_context)
 
 
 admin.site.register(Project, ProjectAdmin)

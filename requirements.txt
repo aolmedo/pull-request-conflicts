@@ -1,5 +1,6 @@
-psycopg2
-django
-djangorestframework
-requests
+psycopg2~=2.9.3
+django~=4.0.1
+djangorestframework~=3.13.1
+requests~=2.27.1
 ipython
+ipdb

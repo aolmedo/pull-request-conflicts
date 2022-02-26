@@ -26,6 +26,7 @@ class Command(BaseCommand):
                                                              first_pairwise_conflicts__isnull=True,
                                                              second_pairwise_conflicts__isnull=True)\
                     .order_by('opened_at'):
+                print(pull_request.id)
                 for another_pull_request in PullRequest.objects.filter(merged=True,
                                                                        closed_at__gte=pull_request.opened_at,
                                                                        closed_at__lte=pull_request.closed_at)\
@@ -53,7 +54,7 @@ class Command(BaseCommand):
                                                 second_pull_request=a_pull_request).exists():
             return ret
 
-        print("Merge entre PR #{} y PR #{}".format(a_pull_request.github_id, another_pull_request.github_id))
+        # print("Merge entre PR #{} y PR #{}".format(a_pull_request.github_id, another_pull_request.github_id))
 
         a_pull_request_commit = a_pull_request.head_commit
         another_pull_request_commit = another_pull_request.head_commit
@@ -62,7 +63,7 @@ class Command(BaseCommand):
             commit_sha_1 = a_pull_request_commit.sha
             commit_sha_2 = another_pull_request_commit.sha
 
-            print("Merge de commit {} en el commit {}".format(commit_sha_2, commit_sha_1))
+            # print("Merge de commit {} en el commit {}".format(commit_sha_2, commit_sha_1))
 
             ret = int(self.git_cmd.conflicting_merge(commit_sha_1, commit_sha_2))
 
