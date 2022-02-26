@@ -1,24 +1,23 @@
 import datetime
-import csv
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
 # from rest_framework import authentication, permissions
 
-from pull_request_conflicts.ghtorrent import GHTorrentDB
-from pull_request_conflicts.conflict_analyzer import PairwiseConflictAnalyzer, PairwiseConflictGraphAnalyzer
+from pairwise_conflict_dataset.models import Project, PullRequest
+from pull_request_prioritization.pairwise_conflict_analyzer import PairwiseConflictGraphAnalyzer
 
 
 class PullRequestsDatasets(APIView):
     """
-    View to list all users in the system.
+    View to list pull requests data
     """
     #authentication_classes = [authentication.TokenAuthentication]
     #permission_classes = [permissions.IsAdminUser]
 
     def get(self, request, format=None):
         """
-        Return a list of all users.
+        Return a list of all pull requests
         """
         project_name = request.GET.get('project')
         date_from = request.GET.get('datefrom')
@@ -45,13 +44,6 @@ class PullRequestsDatasets(APIView):
             current_date = current_date + datetime.timedelta(days=time_interval)
         periods.append(date_to)
 
-        table_name = '{}_pull_requests'.format(project_name)
-        ghtorrent_db = GHTorrentDB(table_name)
-        
-        # pairwise_conflict_analyzer = PairwiseConflictAnalyzer(project_name=project_name)
-        # TODO: Reemplazar por generación de la matriz de pairwise conflict . Calcuarlo abajo donde se usa
-        # pairwise_conflict_by_pull_request = pairwise_conflict_analyzer.get_pairwise_conflict_by_pull_request()
-
         labels = [a_date.strftime('%Y-%m-%d') for a_date in periods] 
 
         merged_pr_amounts = []
@@ -60,31 +52,18 @@ class PullRequestsDatasets(APIView):
         pull_request_groups_amounts = []
         pull_request_groups_by_period = []
 
+        project = Project.objects.get(name=project_name)
+        pull_requests_qs = project.pull_requests.filter(merged=True)
+
         for idx in range(len(periods) - 1):
             a_date_from = periods[idx]
             a_date_to = periods[idx + 1]
 
-            merged_pr_amounts.append(ghtorrent_db.count_of_merged_pull_requests_closed_between(a_date_from, a_date_to))
+            pull_requests_inner_qs = pull_requests_qs.filter(closed_at__gte = a_date_from, closed_at__lte = a_date_to)
 
-            conflicting_pr_amount = 0
-            pairwise_conflict_amount = 0
+            merged_pr_amounts.append(pull_requests_inner_qs.count())
 
-            pull_requests = ghtorrent_db.get_merged_pull_requests_closed_between(a_date_from, a_date_to)
-            # TODO: Construir matriz de Pairwise Conflict
-            # pull_request_ids = [str(pr.pullreq_id) for pr in pull_requests]
-
-            # for pull_request_id in pull_request_ids:
-                # TODO: reemplazar...
-            #     pairwise_conflicts = pairwise_conflict_by_pull_request.get(pull_request_id, [])
-            #    pairwise_conflicts = list(filter(lambda x: x in pull_request_ids, pairwise_conflicts))
-            #     pairwise_conflict_amount += len(pairwise_conflicts)
-            #     if len(pairwise_conflicts) > 0:
-            #        conflicting_pr_amount += 1
-
-            # conflicting_pr_amounts.append(conflicting_pr_amount)
-            # pairwise_conflict_amounts.append(int(pairwise_conflict_amount/2))
-
-            graph = PairwiseConflictGraphAnalyzer(project_name, pull_requests)
+            graph = PairwiseConflictGraphAnalyzer(project, pull_requests_inner_qs.all())
             conflicting_pr_amounts.append(graph.potential_conflicting_prs)
             pairwise_conflict_amounts.append(graph.edges)
             pull_request_groups = graph.get_groups_weight()
