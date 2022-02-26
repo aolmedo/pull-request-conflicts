@@ -63,7 +63,7 @@ class PullRequestAdmin(admin.ModelAdmin):
     readonly_fields = ('ghtorrent_id', 'project', 'github_id', 'base_commit', 'head_commit', 'intra_branch', 'merged',
                        'opened_at', 'closed_at', 'base_branch', 'raw_data', 'github_raw_data')
 
-    @admin.display(ordering='first_pairwise_conflicts__count')
+    @admin.display()
     def pairwise_conflicts_count(self, obj):
         return obj.first_pairwise_conflicts.count() + obj.second_pairwise_conflicts.count()
 
@@ -76,7 +76,8 @@ class PullRequestAdmin(admin.ModelAdmin):
 
 class PairwiseConflictAdmin(admin.ModelAdmin):
     list_display = ('project', 'first_pull_request', 'second_pull_request', 'first_pull_request_head_commit',
-                    'second_pull_request_head_commit', 'first_pull_request_base_branch')
+                    'second_pull_request_head_commit', 'first_pull_request_base_branch',
+                    'first_pull_request_closed_at', 'second_pull_request_closed_at')
     readonly_fields = ('first_pull_request', 'second_pull_request',)
     search_fields = ['first_pull_request__github_id', 'second_pull_request__github_id',
                      'first_pull_request__project__name', 'first_pull_request__base_branch']
@@ -96,6 +97,14 @@ class PairwiseConflictAdmin(admin.ModelAdmin):
     @admin.display(ordering='second_pull_request__base_branch')
     def first_pull_request_base_branch(self, obj):
         return obj.second_pull_request.base_branch
+
+    @admin.display(ordering='first_pull_request__closed_at')
+    def first_pull_request_closed_at(self, obj):
+        return obj.first_pull_request.closed_at
+
+    @admin.display(ordering='second_pull_request__closed_at')
+    def second_pull_request_closed_at(self, obj):
+        return obj.second_pull_request.closed_at
 
     def has_add_permission(self, request):
         return False
