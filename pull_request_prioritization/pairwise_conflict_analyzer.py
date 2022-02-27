@@ -137,6 +137,7 @@ class PairwiseConflictGraphAnalyzer(object):
         i = 0
         for node, properties in G_nx.nodes(data=True):
             properties['weight'] = len(self.groups[i])
+            properties['label'] = 'Group {}: {}'.format(i, len(self.groups[i]))
             properties['style'] = 'filled'
             properties['fontcolor'] = 'white'
             properties['color'] = color_list[i]
@@ -154,6 +155,22 @@ class PairwiseConflictGraphAnalyzer(object):
 
         Agraph_eg.node_attr["height"] = 0.5
         Agraph_eg.node_attr["width"] = 0.5
+        Agraph_eg.node_attr["shape"] = "circle"
+        Agraph_eg.node_attr["fixedsize"] = "true"
+        Agraph_eg.node_attr["fontsize"] = 10
+        Agraph_eg.layout(prog="neato")
+        Agraph_eg.draw('graph_eg3.png')
+
+        return Agraph_eg
+
+    def draw_pairwise_conflict_group_graph(self, graph):
+        """
+            Draw graph
+        """
+        Agraph_eg = to_agraph(graph)
+
+        Agraph_eg.node_attr["height"] = 1
+        Agraph_eg.node_attr["width"] = 1
         Agraph_eg.node_attr["shape"] = "circle"
         Agraph_eg.node_attr["fixedsize"] = "true"
         Agraph_eg.node_attr["fontsize"] = 10
