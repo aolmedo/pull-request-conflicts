@@ -28,7 +28,7 @@ class GHTorrentDB(object):
     def get_selected_projects(self):
         projects = []
         query = "SELECT * FROM selected_projects WHERE id = %(id)s"
-        ret = self.execute_query(query, {'id': 2281})
+        ret = self.execute_query(query, {'id': 48212908})
         for data in ret:
             project = Project(*data)
             projects.append(project)
@@ -40,8 +40,8 @@ class GHTorrentDB(object):
         self.execute_query(query, {'id': project.id})
 
     def extract_commits_for_project(self, project):
-        query = "CREATE TABLE {}_commits AS (SELECT * FROM commits WHERE project_id = %(id)s) "\
-                "OR id IN (SELECT head_commit_id FROM {}_pull_requests)".\
+        query = "CREATE TABLE {}_commits AS (SELECT * FROM commits WHERE project_id = %(id)s "\
+                "OR id IN (SELECT head_commit_id FROM {}_pull_requests))".\
                 format(project.name.lower(), project.name.lower())
         self.execute_query(query, {'id': project.id})
 
