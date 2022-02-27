@@ -17,6 +17,7 @@ class PairwiseConflictGraphAnalyzer(object):
         self.conflict_matrix_path = settings.CONFLICT_MATRIX_PATH
         self.graph = self.make_graph(pull_requests)
         self.groups = self.color_graph()
+        self.pairwise_conflict_group_graph = self.make_pairwise_conflict_group_graph()
 
     def make_graph(self, pull_requests):
         graph = []
@@ -64,6 +65,28 @@ class PairwiseConflictGraphAnalyzer(object):
             for i in range(len(self.pull_request_ids)):
                 csv_writer.writerow([self.pull_request_ids[i]] + self.graph[i])
 
+    def make_pairwise_conflict_group_graph(self):
+        graph = []
+        # Row
+        for r, a_group in enumerate(self.groups):
+            new_row = []
+            # Column
+            for c, another_group in enumerate(self.groups):
+                if c == r:
+                    value = 0
+                elif c > r:  # get conflicts between PR groups
+                    value = 0
+                    for a_pr in a_group:
+                        for another_pr in another_group:
+                            a_pr_idx = self.pull_request_ids.index(a_pr)
+                            another_pr_idx = self.pull_request_ids.index(another_pr)
+                            value += self.graph[a_pr_idx][another_pr_idx]
+                else:  # already calculated
+                    value = graph[c][r]
+                new_row.append(value)
+            graph.append(new_row)
+        return graph
+
     def get_groups_weight(self):
         return [len(group) for group in self.groups]
 
@@ -95,6 +118,34 @@ class PairwiseConflictGraphAnalyzer(object):
                         break;
         return G_nx
 
+    def convert_pcgg_to_nx_graph(self):
+        """
+            Convert matrix to networkx graph
+        """
+        graph_dict = {}
+        for i, pr_group_pairwise_conflicts in enumerate(self.pairwise_conflict_group_graph):
+            graph_dict[i] = pr_group_pairwise_conflicts
+
+        A = pd.DataFrame(graph_dict, index=range(len(self.groups)))
+
+        G_nx = nx.from_pandas_adjacency(A, create_using=nx.Graph())
+        G_nx.graph['edge'] = {'arrowsize': '1.0', 'splines': 'curved'}
+        G_nx.graph['graph'] = {'scale': '3'}
+
+        # red, green, blue, turquoise, sienna
+        color_list = ['#FF0000', '#00FF00', '#0000FF', '#40e0d0', '#a0522d']
+        i = 0
+        for node, properties in G_nx.nodes(data=True):
+            properties['weight'] = len(self.groups[i])
+            properties['style'] = 'filled'
+            properties['fontcolor'] = 'white'
+            properties['color'] = color_list[i]
+            properties['fillcolor'] = color_list[i]
+            i += 1
+        for edge in G_nx.edges(data=True):
+            edge[2]['label'] = edge[2]['weight']
+        return G_nx
+
     def draw_graph(self, graph):
         """
             Draw graph
@@ -105,8 +156,8 @@ class PairwiseConflictGraphAnalyzer(object):
         Agraph_eg.node_attr["width"] = 0.5
         Agraph_eg.node_attr["shape"] = "circle"
         Agraph_eg.node_attr["fixedsize"] = "true"
-        Agraph_eg.node_attr["fontsize"] = 8
+        Agraph_eg.node_attr["fontsize"] = 10
         Agraph_eg.layout(prog="neato")
-        Agraph_eg.draw('graph_eg2.png')
+        Agraph_eg.draw('graph_eg3.png')
 
         return Agraph_eg
