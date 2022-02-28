@@ -18,6 +18,7 @@ class PairwiseConflictGraphAnalyzer(object):
         self.graph = self.make_graph(pull_requests)
         self.groups = self.color_graph()
         self.pairwise_conflict_group_graph = self.make_pairwise_conflict_group_graph()
+        self.optimal_integration_sequence = self.get_optimal_integration_sequence()
 
     def make_graph(self, pull_requests):
         graph = []
@@ -134,18 +135,49 @@ class PairwiseConflictGraphAnalyzer(object):
 
         # red, green, blue, turquoise, sienna
         color_list = ['#FF0000', '#00FF00', '#0000FF', '#40e0d0', '#a0522d']
-        i = 0
         for node, properties in G_nx.nodes(data=True):
-            properties['weight'] = len(self.groups[i])
-            properties['label'] = 'Group {}: {}'.format(i, len(self.groups[i]))
+            properties['weight'] = len(self.groups[node])
+            properties['label'] = 'Group {}: {}'.format(node, len(self.groups[node]))
             properties['style'] = 'filled'
             properties['fontcolor'] = 'white'
-            properties['color'] = color_list[i]
-            properties['fillcolor'] = color_list[i]
-            i += 1
+            properties['color'] = color_list[node]
+            properties['fillcolor'] = color_list[node]
         for edge in G_nx.edges(data=True):
             edge[2]['label'] = edge[2]['weight']
         return G_nx
+
+    def get_optimal_integration_sequence(self):
+        integration_sequence = []
+        g_nx = self.convert_pcgg_to_nx_graph()
+        # select biggest node of G
+        v = None
+        max_node_size = 0
+        for node, properties  in g_nx.nodes(data=True):
+            if properties["weight"] > max_node_size:
+                v = node
+                max_node_size = properties["weight"]
+        integration_sequence.append(v)
+        # traverse graph nodes starting with the biggest node
+        for it in range(len(g_nx.nodes()) - 1):
+            neighbors = list(g_nx.neighbors(v))
+            for x in integration_sequence:
+                if x in neighbors:
+                    neighbors.remove(x)
+            best_neighbor = None
+            best_trade_off_value = 0
+            for neighbor in neighbors:
+                node_size = g_nx.nodes(data=True)[neighbor]['weight']
+                edge_accum_weight = 0
+                for node in integration_sequence:
+                    edge = g_nx.get_edge_data(node, neighbor)
+                    edge_accum_weight += edge['weight']
+                trade_off_value = node_size / edge_accum_weight
+                if trade_off_value > best_trade_off_value:
+                    best_neighbor = neighbor
+                    best_trade_off_value = trade_off_value
+            v = best_neighbor
+            integration_sequence.append(v)
+        return integration_sequence
 
     def draw_graph(self, graph):
         """

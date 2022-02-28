@@ -14,6 +14,11 @@ class GHTorrentDB(object):
             format(settings.DB_NAME, settings.DB_USER, settings.DB_HOST, settings.DB_PORT)
         self.conn = psycopg2.connect(dsn)
 
+    def execute(self, query, params={}):
+        with self.conn as conn:
+            with conn.cursor() as cursor:
+                cursor.execute(query, params)
+
     def execute_query(self, query, params={}):
         with self.conn as conn:
             with conn.cursor() as cursor:
@@ -37,13 +42,13 @@ class GHTorrentDB(object):
     def extract_pull_requests_for_project(self, project):
         query = "CREATE TABLE {}_pull_requests AS (SELECT * FROM pull_requests WHERE base_repo_id = %(id)s)".\
                 format(project.name.lower())
-        self.execute_query(query, {'id': project.id})
+        self.execute(query, {'id': project.id})
 
     def extract_commits_for_project(self, project):
         query = "CREATE TABLE {}_commits AS (SELECT * FROM commits WHERE project_id = %(id)s "\
                 "OR id IN (SELECT head_commit_id FROM {}_pull_requests))".\
                 format(project.name.lower(), project.name.lower())
-        self.execute_query(query, {'id': project.id})
+        self.execute(query, {'id': project.id})
 
     def export_selected_projects(self):
         query = "COPY (SELECT * FROM selected_projects ORDER BY created_at) TO STDOUT " \
