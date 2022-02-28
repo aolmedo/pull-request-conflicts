@@ -123,4 +123,4 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-STATIC_ROOT = '/home/aolmedo/greencode/tmp/'
+STATIC_ROOT = '/home/aolmedo/phd/tmp/'
