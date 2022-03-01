@@ -64,8 +64,8 @@ class PullRequestsDatasets(APIView):
             merged_pr_amounts.append(pull_requests_inner_qs.count())
 
             graph = PairwiseConflictGraphAnalyzer(project, pull_requests_inner_qs.all())
-            conflicting_pr_amounts.append(graph.potential_conflicting_prs)
-            pairwise_conflict_amounts.append(graph.edges)
+            conflicting_pr_amounts.append(graph.potential_conflicting_prs_number)
+            pairwise_conflict_amounts.append(graph.pairwise_conflict_number)
             pull_request_groups = graph.get_groups_weight()
             pull_request_groups_amounts.append(len(pull_request_groups))
             pull_request_groups_by_period.append(pull_request_groups)

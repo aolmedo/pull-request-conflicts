@@ -12,15 +12,14 @@ class PairwiseConflictGraphAnalyzer(object):
     def __init__(self, project, pull_requests):
         self.project = project
         self.pull_request_ids = [str(pr.github_id) for pr in pull_requests]
-        self.edges = 0
-        self.potential_conflicting_prs = 0
-        self.conflict_matrix_path = settings.CONFLICT_MATRIX_PATH
-        self.graph = self.make_graph(pull_requests)
-        self.groups = self.color_graph()
+        self.pairwise_conflict_number = 0
+        self.potential_conflicting_prs_number = 0
+        self.pairwise_conflict_graph = self.make_pairwise_conflict_graph(pull_requests)
+        self.groups = self.color_pairwise_conflict_graph()
         self.pairwise_conflict_group_graph = self.make_pairwise_conflict_group_graph()
         self.optimal_integration_sequence = self.get_optimal_integration_sequence()
 
-    def make_graph(self, pull_requests):
+    def make_pairwise_conflict_graph(self, pull_requests):
         graph = []
         # Row
         for r, a_pull_request in enumerate(pull_requests):
@@ -37,20 +36,21 @@ class PairwiseConflictGraphAnalyzer(object):
                         value = 1
                     else:
                         value = 0
-                    self.edges += value
+                    self.pairwise_conflict_number += value
                 else:  # already calculated
                     value = graph[c][r]
                 new_row.append(value)
             if sum(new_row) > 0:
-                self.potential_conflicting_prs += 1
+                self.potential_conflicting_prs_number += 1
             graph.append(new_row)
         return graph
 
-    def color_graph(self):
-        self.save_graph()
+    def color_pairwise_conflict_graph(self):
+        conflict_matrix_path = settings.CONFLICT_MATRIX_PATH
+        self.store_pairwise_conflict_graph(conflict_matrix_path)
         groups = []
         result = subprocess.run(['java', '-jar', 'matrix.jar'],
-                                cwd=self.conflict_matrix_path, capture_output=True)
+                                cwd=conflict_matrix_path, capture_output=True)
 
         groups_str = result.stdout.decode('utf-8').split('\n')[:-1]
         for group_str in groups_str:
@@ -58,13 +58,13 @@ class PairwiseConflictGraphAnalyzer(object):
 
         return groups
 
-    def save_graph(self):
-        filename = '{}/matrix.csv'.format(self.conflict_matrix_path)
+    def store_pairwise_conflict_graph(self, conflict_matrix_path):
+        filename = '{}/matrix.csv'.format(conflict_matrix_path)
         with open(filename, 'w') as csv_file:
             csv_writer = csv.writer(csv_file)
             csv_writer.writerow(['0'] + self.pull_request_ids)
             for i in range(len(self.pull_request_ids)):
-                csv_writer.writerow([self.pull_request_ids[i]] + self.graph[i])
+                csv_writer.writerow([self.pull_request_ids[i]] + self.pairwise_conflict_graph[i])
 
     def make_pairwise_conflict_group_graph(self):
         graph = []
@@ -81,7 +81,7 @@ class PairwiseConflictGraphAnalyzer(object):
                         for another_pr in another_group:
                             a_pr_idx = self.pull_request_ids.index(a_pr)
                             another_pr_idx = self.pull_request_ids.index(another_pr)
-                            value += self.graph[a_pr_idx][another_pr_idx]
+                            value += self.pairwise_conflict_graph[a_pr_idx][another_pr_idx]
                 else:  # already calculated
                     value = graph[c][r]
                 new_row.append(value)
@@ -96,7 +96,7 @@ class PairwiseConflictGraphAnalyzer(object):
             Convert matrix to networkx graph
         """
         graph_dict = {}
-        for i, pr_pairwise_conflicts in enumerate(self.graph):
+        for i, pr_pairwise_conflicts in enumerate(self.pairwise_conflict_graph):
             pr_id = self.pull_request_ids[i]
             graph_dict[pr_id] = pr_pairwise_conflicts
 
@@ -107,10 +107,12 @@ class PairwiseConflictGraphAnalyzer(object):
         G_nx.graph['graph'] = {'scale': '3'}
 
         if colored:
-            # red, green, blue, turquoise, sienna
-            color_list = ['#FF0000', '#00FF00', '#0000FF', '#40e0d0', '#a0522d']
+            # red, green, blue, turquoise, sienna, purple, navy, teal, olive, maroon, dark golden rod, lime,
+            # gray, dark orange, slate gray
+            color_list = ['#FF0000', '#008000', '#0000FF', '#40e0d0', '#a0522d', '#800080', '#000080', '#008080',
+                          '#808000', '#800000', '#B8860B', '#00FF00', '#808080', '#FF8C00', '#708090']
             for node, properties in G_nx.nodes(data=True):
-                for i, group in enumerate(self.groups)  :
+                for i, group in enumerate(self.groups):
                     if node in group:
                         properties['style'] = 'filled'
                         properties['fontcolor'] = 'white'
@@ -133,8 +135,10 @@ class PairwiseConflictGraphAnalyzer(object):
         G_nx.graph['edge'] = {'arrowsize': '1.0', 'splines': 'curved'}
         G_nx.graph['graph'] = {'scale': '3'}
 
-        # red, green, blue, turquoise, sienna
-        color_list = ['#FF0000', '#00FF00', '#0000FF', '#40e0d0', '#a0522d']
+        # red, green, blue, turquoise, sienna, purple, navy, teal, olive, maroon, dark golden rod, lime,
+        # gray, dark orange, slate gray
+        color_list = ['#FF0000', '#008000', '#0000FF', '#40e0d0', '#a0522d', '#800080', '#000080', '#008080',
+                      '#808000', '#800000', '#B8860B', '#00FF00', '#808080', '#FF8C00', '#708090']
         for node, properties in G_nx.nodes(data=True):
             properties['weight'] = len(self.groups[node])
             properties['label'] = 'Group {}: {}'.format(node, len(self.groups[node]))
@@ -179,34 +183,21 @@ class PairwiseConflictGraphAnalyzer(object):
             integration_sequence.append(v)
         return integration_sequence
 
-    def draw_graph(self, graph):
-        """
-            Draw graph
-        """
-        Agraph_eg = to_agraph(graph)
 
-        Agraph_eg.node_attr["height"] = 0.5
-        Agraph_eg.node_attr["width"] = 0.5
-        Agraph_eg.node_attr["shape"] = "circle"
-        Agraph_eg.node_attr["fixedsize"] = "true"
-        Agraph_eg.node_attr["fontsize"] = 10
-        Agraph_eg.layout(prog="neato")
-        Agraph_eg.draw('graph_eg3.png')
+class GraphDrawer(object):
 
-        return Agraph_eg
-
-    def draw_pairwise_conflict_group_graph(self, graph):
+    def store_graph(self, graph, path, height=0.5, width=0.5, fontsize=10):
         """
-            Draw graph
+            Draw and store graph
         """
         Agraph_eg = to_agraph(graph)
 
-        Agraph_eg.node_attr["height"] = 1
-        Agraph_eg.node_attr["width"] = 1
+        Agraph_eg.node_attr["height"] = height
+        Agraph_eg.node_attr["width"] = width
         Agraph_eg.node_attr["shape"] = "circle"
         Agraph_eg.node_attr["fixedsize"] = "true"
-        Agraph_eg.node_attr["fontsize"] = 10
+        Agraph_eg.node_attr["fontsize"] = fontsize
         Agraph_eg.layout(prog="neato")
-        Agraph_eg.draw('graph_eg3.png')
+        Agraph_eg.draw(path)
 
         return Agraph_eg
