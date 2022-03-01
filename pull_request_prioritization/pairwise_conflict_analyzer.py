@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import io
 import subprocess
 import csv
 import pandas as pd
@@ -186,10 +187,12 @@ class PairwiseConflictGraphAnalyzer(object):
 
 class GraphDrawer(object):
 
-    def store_graph(self, graph, path, height=0.5, width=0.5, fontsize=10):
+    def store_graph(self, graph, height=0.5, width=0.5, fontsize=10):
         """
             Draw and store graph
         """
+        imgbuf = io.BytesIO
+
         Agraph_eg = to_agraph(graph)
 
         Agraph_eg.node_attr["height"] = height
@@ -198,6 +201,6 @@ class GraphDrawer(object):
         Agraph_eg.node_attr["fixedsize"] = "true"
         Agraph_eg.node_attr["fontsize"] = fontsize
         Agraph_eg.layout(prog="neato")
-        Agraph_eg.draw(path)
+        Agraph_eg.draw(imgbuf, format='png')
 
-        return Agraph_eg
+        return imgbuf

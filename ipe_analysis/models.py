@@ -1,3 +1,5 @@
+import io
+from matplotlib import pyplot as plt
 from django.db import models
 from pairwise_conflict_dataset.models import Project
 from pull_request_prioritization.pairwise_conflict_analyzer import PairwiseConflictGraphAnalyzer
@@ -17,6 +19,13 @@ class IPETimeWindow(models.Model):
     optimized_conflict_resolutions_number = models.PositiveIntegerField(_(u'optimized conflict resolutions number'))
     optimized_ipe = models.DecimalField(_(u'optimized IPE'), max_digits=10, decimal_places=2)
     ipe_improvement_percentage = models.DecimalField(_(u'IPE improvement (%)'), max_digits=10, decimal_places=2)
+    # images
+    pairwise_conflict_graph_image = models.ImageField(upload_to='pairwise_conflict_graphs', null=True, blank=True)
+    colored_pairwise_conflict_graph_image = models.ImageField(upload_to='colores_pairwise_conflict_graphs',
+                                                              null=True, blank=True)
+    pull_request_group_graph_image = models.ImageField(upload_to='pull_request_group_graphs', null=True, blank=True)
+    integration_trajectories_image = models.ImageField(upload_to='integration_trajectories_figures',
+                                                       null=True, blank=True)
 
     def __str__(self):
         return "{} - case study: {}".format(self.project.name, self.id)
@@ -35,13 +44,14 @@ class IPECalculation(object):
                                                                closed_at__gte=date_from,
                                                                closed_at__lte=date_to).order_by('closed_at')
         self.pcga = PairwiseConflictGraphAnalyzer(self.project, self.pull_requests)
-        self.historical.conflict_resolutions_number = 0
-        self.optimized.conflict_resolutions_number = len(self.pcga.groups)
+        self.historical_conflict_resolutions_number = 0
+        self.optimized_conflict_resolutions_number = len(self.pcga.groups)
         self.historical_ipe = self.get_historical_ipe()
         self.optimized_ipe = self.get_optimized_ipe()
         self.ipe_improvement_percentage = ((self.optimized_ipe / self.historical_ipe) - 1) * 100
 
     def historical_cost_gain_function(self):
+        self.historical.conflict_resolutions_number = 0
         cost_gain_table = []
         already_integrated_prs = []
         cumulative_gain = 0
@@ -92,3 +102,37 @@ class IPECalculation(object):
         for i in range(len(cost_gain_table)-1):
             area += cost_gain_table[i][1] * (cost_gain_table[i+1][0] - cost_gain_table[i][0])
         return area
+
+    def plot(self):
+        figure = io.BytesIO()
+
+        historical_integration_sequence = self.historical_cost_gain_function()
+        historical_integration_sequence_x = [x[0] for x in historical_integration_sequence]
+        historical_integration_sequence_y = [x[1] for x in historical_integration_sequence]
+
+        optimized_integration_sequence = self.optimized_cost_gain_function()
+        optimized_integration_sequence_x = [x[0] for x in optimized_integration_sequence]
+        optimized_integration_sequence_y = [x[1] for x in optimized_integration_sequence]
+
+        max_x = max(historical_integration_sequence_x + optimized_integration_sequence_x)
+        max_y = max(historical_integration_sequence_y + optimized_integration_sequence_y)
+
+        plt.step(historical_integration_sequence_x, historical_integration_sequence_y, "bs-",
+                 where="post", label='historical')
+        plt.step(optimized_integration_sequence_x, optimized_integration_sequence_y, "rD-",
+                 where="post", label='proposal')
+        plt.grid()
+        plt.xlabel("Cumulative cost")
+        plt.ylabel("Cumulative gain")
+        plt.title("Integration Trajectories")
+        plt.legend(loc="right")
+        plt.xlim(0, max_x+1)
+        plt.ylim(0, max_y+1)
+        plt.annotate("IPE = {}".format(self.historical_ipe),
+                     xy=(max_x / 2, (max_y / 2) + 2),
+                     color="b", fontsize=10, weight="bold")
+        plt.annotate("IPE = {}".format(self.optimized_ipe),
+                     xy=(1, (max_y/2)+2),
+                     color="r", fontsize=10, weight="bold")
+        plt.savefig(figure, format='png')
+        return figure
