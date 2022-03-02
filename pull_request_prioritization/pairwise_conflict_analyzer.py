@@ -157,31 +157,35 @@ class PairwiseConflictGraphAnalyzer(object):
         # select biggest node of G
         v = None
         max_node_size = 0
-        for node, properties  in g_nx.nodes(data=True):
+        for node, properties in g_nx.nodes(data=True):
             if properties["weight"] > max_node_size:
                 v = node
                 max_node_size = properties["weight"]
-        integration_sequence.append(v)
+        if v:
+            integration_sequence.append(v)
+        else:
+            integration_sequence.append(0)
         # traverse graph nodes starting with the biggest node
         for it in range(len(g_nx.nodes()) - 1):
             neighbors = list(g_nx.neighbors(v))
             for x in integration_sequence:
                 if x in neighbors:
                     neighbors.remove(x)
-            best_neighbor = None
-            best_trade_off_value = 0
-            for neighbor in neighbors:
-                node_size = g_nx.nodes(data=True)[neighbor]['weight']
-                edge_accum_weight = 0
-                for node in integration_sequence:
-                    edge = g_nx.get_edge_data(node, neighbor)
-                    edge_accum_weight += edge['weight']
-                trade_off_value = node_size / edge_accum_weight
-                if trade_off_value > best_trade_off_value:
-                    best_neighbor = neighbor
-                    best_trade_off_value = trade_off_value
-            v = best_neighbor
-            integration_sequence.append(v)
+            if neighbors:
+                best_neighbor = None
+                best_trade_off_value = 0
+                for neighbor in neighbors:
+                    node_size = g_nx.nodes(data=True)[neighbor]['weight']
+                    edge_accum_weight = 0
+                    for node in integration_sequence:
+                        edge = g_nx.get_edge_data(node, neighbor)
+                        edge_accum_weight += edge['weight']
+                    trade_off_value = node_size / edge_accum_weight
+                    if trade_off_value > best_trade_off_value:
+                        best_neighbor = neighbor
+                        best_trade_off_value = trade_off_value
+                v = best_neighbor
+                integration_sequence.append(v)
         return integration_sequence
 
 
@@ -191,7 +195,7 @@ class GraphDrawer(object):
         """
             Draw and store graph
         """
-        imgbuf = io.BytesIO
+        imgbuf = io.BytesIO()
 
         Agraph_eg = to_agraph(graph)
 

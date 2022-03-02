@@ -1,6 +1,7 @@
 import io
 from matplotlib import pyplot as plt
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 from pairwise_conflict_dataset.models import Project
 from pull_request_prioritization.pairwise_conflict_analyzer import PairwiseConflictGraphAnalyzer
 
@@ -43,15 +44,16 @@ class IPECalculation(object):
         self.pull_requests = self.project.pull_requests.filter(merged=True,
                                                                closed_at__gte=date_from,
                                                                closed_at__lte=date_to).order_by('closed_at')
-        self.pcga = PairwiseConflictGraphAnalyzer(self.project, self.pull_requests)
-        self.historical_conflict_resolutions_number = 0
-        self.optimized_conflict_resolutions_number = len(self.pcga.groups)
-        self.historical_ipe = self.get_historical_ipe()
-        self.optimized_ipe = self.get_optimized_ipe()
-        self.ipe_improvement_percentage = ((self.optimized_ipe / self.historical_ipe) - 1) * 100
+        if self.pull_requests:
+            self.pcga = PairwiseConflictGraphAnalyzer(self.project, self.pull_requests)
+            self.historical_conflict_resolutions_number = 0
+            self.optimized_conflict_resolutions_number = len(self.pcga.groups)
+            self.historical_ipe = self.get_historical_ipe()
+            self.optimized_ipe = self.get_optimized_ipe()
+            self.ipe_improvement_percentage = ((self.optimized_ipe / self.historical_ipe) - 1) * 100
 
     def historical_cost_gain_function(self):
-        self.historical.conflict_resolutions_number = 0
+        self.historical_conflict_resolutions_number = 0
         cost_gain_table = []
         already_integrated_prs = []
         cumulative_gain = 0
@@ -59,11 +61,11 @@ class IPECalculation(object):
         for pull_request in self.pull_requests:
             cost = 0
             for merged_pr in already_integrated_prs:
-                pos_pull_request = self.pcga.pull_request_ids.index(pull_request.github_id)
-                pos_merged_pr = self.pcga.pull_request_ids.index(merged_pr.github_id)
+                pos_pull_request = self.pcga.pull_request_ids.index(str(pull_request.github_id))
+                pos_merged_pr = self.pcga.pull_request_ids.index(str(merged_pr.github_id))
                 cost += self.pcga.pairwise_conflict_graph[pos_pull_request][pos_merged_pr]
             if cost > 0:
-                self.historical.conflict_resolutions_number += 1
+                self.historical_conflict_resolutions_number += 1
             cumulative_cost += cost
             cumulative_gain += 1
             cost_gain_table.append((cumulative_cost, cumulative_gain))
@@ -99,8 +101,12 @@ class IPECalculation(object):
 
     def _calculate_area(self, cost_gain_table):
         area = 0
+        if len(cost_gain_table) == 1:
+            area = cost_gain_table[0][1]
         for i in range(len(cost_gain_table)-1):
             area += cost_gain_table[i][1] * (cost_gain_table[i+1][0] - cost_gain_table[i][0])
+        if area == 0:
+            area = cost_gain_table[-1][1]
         return area
 
     def plot(self):
@@ -135,4 +141,5 @@ class IPECalculation(object):
                      xy=(1, (max_y/2)+2),
                      color="r", fontsize=10, weight="bold")
         plt.savefig(figure, format='png')
+        plt.clf()
         return figure
