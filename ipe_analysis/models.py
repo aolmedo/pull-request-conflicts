@@ -22,7 +22,7 @@ class IPETimeWindow(models.Model):
     ipe_improvement_percentage = models.DecimalField(_(u'IPE improvement (%)'), max_digits=10, decimal_places=2)
     # images
     pairwise_conflict_graph_image = models.ImageField(upload_to='pairwise_conflict_graphs', null=True, blank=True)
-    colored_pairwise_conflict_graph_image = models.ImageField(upload_to='colores_pairwise_conflict_graphs',
+    colored_pairwise_conflict_graph_image = models.ImageField(upload_to='colored_pairwise_conflict_graphs',
                                                               null=True, blank=True)
     pull_request_group_graph_image = models.ImageField(upload_to='pull_request_group_graphs', null=True, blank=True)
     integration_trajectories_image = models.ImageField(upload_to='integration_trajectories_figures',
@@ -47,7 +47,7 @@ class IPECalculation(object):
         if self.pull_requests:
             self.pcga = PairwiseConflictGraphAnalyzer(self.project, self.pull_requests)
             self.historical_conflict_resolutions_number = 0
-            self.optimized_conflict_resolutions_number = len(self.pcga.groups)
+            self.optimized_conflict_resolutions_number = len(self.pcga.groups) - 1
             self.historical_ipe = self.get_historical_ipe()
             self.optimized_ipe = self.get_optimized_ipe()
             self.ipe_improvement_percentage = ((self.optimized_ipe / self.historical_ipe) - 1) * 100
@@ -135,10 +135,10 @@ class IPECalculation(object):
         plt.xlim(0, max_x+1)
         plt.ylim(0, max_y+1)
         plt.annotate("IPE = {}".format(self.historical_ipe),
-                     xy=(max_x / 2, (max_y / 2) + 2),
+                     xy=(((max_x + 1) + ((max_x + 1) * 0.1)) / 2, ((max_y + 1) / 2) + ((max_y + 1) * 0.1)),
                      color="b", fontsize=10, weight="bold")
         plt.annotate("IPE = {}".format(self.optimized_ipe),
-                     xy=(1, (max_y/2)+2),
+                     xy=((max_x + 1) * 0.1, ((max_y + 1)/2) + ((max_y+1) * 0.1)),
                      color="r", fontsize=10, weight="bold")
         plt.savefig(figure, format='png')
         plt.clf()
