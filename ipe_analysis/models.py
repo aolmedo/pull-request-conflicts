@@ -9,15 +9,15 @@ from pull_request_prioritization.pairwise_conflict_analyzer import PairwiseConfl
 class IPETimeWindow(models.Model):
     project = models.ForeignKey(Project, on_delete=models.PROTECT,
                                 verbose_name="project", related_name='ipe_time_windows')
-    start_date = models.DateTimeField(_(u'time window start date'))
-    end_date = models.DateTimeField(_(u'time window end date'))
-    pull_requests_number = models.PositiveIntegerField(_(u'# pull requests'))
+    start_date = models.DateTimeField(_(u'start date'))
+    end_date = models.DateTimeField(_(u'end date'))
+    pull_requests_number = models.PositiveIntegerField(_(u'# merged PRs'))
     pairwise_conflicts_number = models.PositiveIntegerField(_(u'# pairwise conflicts'))
     potential_conflict_resolutions_number = models.PositiveIntegerField(_(u'# potential conflict resolutions'))
-    unconflicting_pull_request_groups_number = models.PositiveIntegerField(_(u'# unconflicting pull request groups'))
-    historical_conflict_resolutions_number = models.PositiveIntegerField(_(u'historical conflict resolutions number'))
+    unconflicting_pull_request_groups_number = models.PositiveIntegerField(_(u'# unconflicting PR groups'))
+    historical_conflict_resolutions_number = models.PositiveIntegerField(_(u'# historical conflict resolutions'))
     historical_ipe = models.DecimalField(_(u'historical IPE '), max_digits=10, decimal_places=2)
-    optimized_conflict_resolutions_number = models.PositiveIntegerField(_(u'optimized conflict resolutions number'))
+    optimized_conflict_resolutions_number = models.PositiveIntegerField(_(u'# optimized conflict resolutions'))
     optimized_ipe = models.DecimalField(_(u'optimized IPE'), max_digits=10, decimal_places=2)
     ipe_improvement_percentage = models.DecimalField(_(u'IPE improvement (%)'), max_digits=10, decimal_places=2)
     # images

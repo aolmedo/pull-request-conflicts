@@ -61,13 +61,21 @@ class CommitAdmin(admin.ModelAdmin):
 
 
 class PullRequestAdmin(admin.ModelAdmin):
-    list_display = ('github_id', 'project', 'intra_branch', 'merged', 'opened_at', 'closed_at', 'base_branch',
-                    'pairwise_conflicts_count')
+    list_display = ('github_id', 'project', 'intra_branch', 'merged', 'opened_at', 'closed_at', 'head_commit_link',
+                    'base_branch', 'pairwise_conflicts_count')
     date_hierarchy = 'closed_at'
     list_filter = ('intra_branch', 'merged', 'project')
     search_fields = ['github_id', 'project__name', 'base_branch']
     readonly_fields = ('ghtorrent_id', 'project', 'github_id', 'base_commit', 'head_commit', 'intra_branch', 'merged',
                        'opened_at', 'closed_at', 'base_branch', 'raw_data', 'github_raw_data')
+
+    @admin.display(description='head_commit')
+    def head_commit_link(self, obj):
+        return mark_safe(
+            '<a class="grp-button" href="{}/commit/{}" target="blank">{}</a>'.format(
+                obj.project.github_url,
+                obj.head_commit,
+                obj.head_commit))
 
     @admin.display()
     def pairwise_conflicts_count(self, obj):
@@ -113,11 +121,19 @@ class PairwiseConflictAdmin(admin.ModelAdmin):
 
     @admin.display(ordering='first_pull_request__head_commmit__created_at')
     def first_pull_request_head_commit(self, obj):
-        return obj.first_pull_request.head_commit
+            return mark_safe(
+                '<a class="grp-button" href="{}/commit/{}" target="blank">{}</a>'.format(
+                    obj.first_pull_request.project.github_url,
+                    obj.first_pull_request.head_commit,
+                    obj.first_pull_request.head_commit))
 
     @admin.display(ordering='second_pull_request__head_commmit__created_at')
     def second_pull_request_head_commit(self, obj):
-        return obj.second_pull_request.head_commit
+        return mark_safe(
+            '<a class="grp-button" href="{}/commit/{}" target="blank">{}</a>'.format(
+                obj.second_pull_request.project.github_url,
+                obj.second_pull_request.head_commit,
+                obj.second_pull_request.head_commit))
 
     @admin.display(ordering='second_pull_request__base_branch')
     def first_pull_request_base_branch(self, obj):
