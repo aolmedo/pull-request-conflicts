@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.urls import reverse
 from django.utils.html import mark_safe
 from ipe_analysis.models import IPETimeWindow
 
@@ -18,7 +19,8 @@ class IPETimeWindowAdmin(admin.ModelAdmin):
 
     @admin.display()
     def view_detail(self, obj):
-        return mark_safe('<a class="grp-button" href="{}" target="blank">{}</a>'.format('url', 'view'))
+        return mark_safe('<a class="grp-button" href="{}" target="blank">{}</a>'.format(
+            reverse('ipe-time-window-detail', kwargs={'pk': obj.id}), 'view'))
 
     def has_add_permission(self, request):
         return False

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        table, th, td {
+            border: 1px solid;
+            text-align: center;
+            padding: 5px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+    </style>
+    <title>{{ object.project.name.capitalize }} {{ object.start_date }} - {{ object.end_date }}</title>
+</head>
+<body>
+    <h1>{{ object.project.name.capitalize }} ({{ object.start_date.date }} - {{ object.end_date.date }})</h1>
+    <table>
+        <tr><td colspan="9"><h2>Data</h2></td></tr>
+        <tr>
+            <td># Merged PRs</td>
+            <td># Pairwise Conflicts</td>
+            <td># Potential Conflict Resolutions</td>
+            <td># Unconflicting PR Groups</td>
+            <td># Historical Conflict Resolution</td>
+            <td>Historical IPE</td>
+            <td># Optimized Conflict Resolution</td>
+            <td>Optimized IPE</td>
+            <td>IPE Improvement (%)</td>
+        </tr>
+        <tr>
+            <td>{{ object.pull_requests_number }}</td>
+            <td>{{ object.pairwise_conflicts_number }}</td>
+            <td>{{ object.potential_conflict_resolutions_number }}</td>
+            <td>{{ object.unconflicting_pull_request_groups_number }}</td>
+            <td>{{ object.historical_conflict_resolutions_number }}</td>
+            <td>{{ object.historical_ipe }}</td>
+            <td>{{ object.optimized_conflict_resolutions_number }}</td>
+            <td>{{ object.optimized_ipe }}</td>
+            <td>{{ object.ipe_improvement_percentage }}</td>
+        </tr>
+    </table>
+    <div style="min-height: 50px"></div>
+    <table>
+        <tr>
+            <td><h2>Pairwise Conflict Graph</h2></td>
+            <td><h2>Colored Pairwise Conflict Graph</h2></td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    <img src="{{ object.pairwise_conflict_graph_image.url }}" alt="Pairwise Conflict Graph">
+                </div>
+            </td>
+            <td>
+                <div>
+                    <img src="{{ object.colored_pairwise_conflict_graph_image.url }}" alt="Colored Pairwise Conflict Graph">
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td><h2>Pull Request Group Graph</h2></td>
+            <td><h2>Integration trajectories - IPE</h2></td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    <img src="{{ object.pull_request_group_graph_image.url }}" alt="Pull Request Group Graph">
+                </div>
+            </td>
+            <td>
+                <div>
+                    <img src="{{ object.integration_trajectories_image.url }}" alt="Integration Trajectories">
+                </div>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
