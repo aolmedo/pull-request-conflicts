@@ -4,12 +4,20 @@ from django.db.models import Count
 from django.db.models.functions import TruncDay
 from django.core.serializers.json import DjangoJSONEncoder
 from django.utils.html import mark_safe
-from django.http import JsonResponse
-from django.urls import path
+from import_export import resources
+from import_export.admin import ExportMixin
 from pairwise_conflict_dataset.models import Project, Commit, PullRequest, PairwiseConflict
 
 
-class ProjectAdmin(admin.ModelAdmin):
+class ProjectResource(resources.ModelResource):
+
+    class Meta:
+        model = Project
+        fields = ('name', 'description', 'github_url', 'language', 'created_at')
+        export_order = ('name', 'description', 'github_url', 'language', 'created_at')
+
+
+class ProjectAdmin(ExportMixin, admin.ModelAdmin):
     list_display = ('name', 'description', 'github_url_link', 'language', 'created_at', 'pull_requests_count',
                     'commits_count')
     date_hierarchy = 'created_at'
@@ -17,6 +25,7 @@ class ProjectAdmin(admin.ModelAdmin):
     search_fields = ['name',]
     readonly_fields = ('ghtorrent_id', 'name', 'description', 'github_url', 'api_url', 'language', 'created_at',
                        'default_branch', 'raw_data', 'github_raw_data')
+    resource_class = ProjectResource
 
     @admin.display()
     def github_url_link(self, obj):
@@ -46,12 +55,21 @@ class ProjectAdmin(admin.ModelAdmin):
         return False
 
 
-class CommitAdmin(admin.ModelAdmin):
+class CommitResource(resources.ModelResource):
+
+    class Meta:
+        model = Commit
+        fields = ('project', 'sha', 'created_at')
+        export_order = ('project', 'sha', 'created_at')
+
+
+class CommitAdmin(ExportMixin, admin.ModelAdmin):
     list_display = ('project', 'sha', 'created_at')
     date_hierarchy = 'created_at'
     list_filter = ('project',)
     search_fields = ['project__name', ]
     readonly_fields = ('ghtorrent_id', 'project', 'sha', 'created_at', 'raw_data')
+    resource_class = CommitResource
 
     def has_add_permission(self, request):
         return False

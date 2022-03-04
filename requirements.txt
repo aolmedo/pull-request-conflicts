@@ -1,6 +1,7 @@
 psycopg2~=2.9.3
 django~=4.0.1
 djangorestframework~=3.13.1
+django-import-export
 requests~=2.27.1
 numpy
 matplotlib
