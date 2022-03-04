@@ -11,8 +11,32 @@ class Project(models.Model):
     language = models.CharField(_(u'language'), max_length=255)
     created_at = models.DateTimeField(_(u'created at'))
     default_branch = models.CharField(_(u'default branch'), max_length=255, null=True, blank=True)
+    pairwise_conflicts_count = models.PositiveIntegerField(_(u'pairwise conflict count'), null=True, blank=True)
+    data_quality_percentage = models.DecimalField(_(u'data quality (%)'), max_digits=10, decimal_places=2,
+                                                  null=True, blank=True)
     raw_data = models.JSONField(_(u'raw data'))
     github_raw_data = models.JSONField(_(u'github raw data'), null=True, blank=True)
+
+    def get_pairwise_conflicts_count(self, recalculate=False):
+        if recalculate:
+            pairwise_conflicts_count = 0
+            for pull_request in self.pull_requests.all():
+                pairwise_conflicts_count += pull_request.first_pairwise_conflicts.count() + \
+                                            pull_request.second_pairwise_conflicts.count()
+            self.pairwise_conflicts_count = int(pairwise_conflicts_count / 2)
+            self.save()
+        return self.pairwise_conflicts_count
+
+    def get_data_quality_percentage(self, recalculate=False):
+        if recalculate:
+            ok_count = 0
+            for pull_request in self.pull_requests.all():
+                if pull_request.head_commit and \
+                        str(pull_request.project.ghtorrent_id) == pull_request.head_commit.raw_data.get('project_id'):
+                    ok_count += 1
+            self.data_quality_percentage = (ok_count / self.pull_requests.count()) * 100
+            self.save()
+        return self.data_quality_percentage
 
     def __str__(self):
         return self.name

@@ -9,7 +9,9 @@ class IPETimeWindowAdmin(admin.ModelAdmin):
                     'potential_conflict_resolutions_number', 'unconflicting_pull_request_groups_number',
                     'historical_conflict_resolutions_number', 'historical_ipe', 'optimized_conflict_resolutions_number',
                     'optimized_ipe', 'ipe_improvement_percentage', 'view_detail')
-
+    date_hierarchy = 'start_date'
+    list_filter = ('project',)
+    search_fields = ['project__name', ]
     readonly_fields = ('project', 'start_date', 'end_date', 'pull_requests_number', 'pairwise_conflicts_number',
                        'potential_conflict_resolutions_number', 'unconflicting_pull_request_groups_number',
                        'historical_conflict_resolutions_number', 'historical_ipe',

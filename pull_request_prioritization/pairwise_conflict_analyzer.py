@@ -14,9 +14,9 @@ class PairwiseConflictGraphAnalyzer(object):
         self.project = project
         self.pull_request_ids = [str(pr.github_id) for pr in pull_requests]
         self.pairwise_conflict_number = 0
-        self.potential_conflicting_prs_number = 0
         self.pairwise_conflict_graph = self.make_pairwise_conflict_graph(pull_requests)
         self.groups = self.color_pairwise_conflict_graph()
+        self.potential_conflicting_prs_number = self.get_potential_conflicting_prs_number()
         self.pairwise_conflict_group_graph = self.make_pairwise_conflict_group_graph()
         self.optimal_integration_sequence = self.get_optimal_integration_sequence()
 
@@ -41,8 +41,6 @@ class PairwiseConflictGraphAnalyzer(object):
                 else:  # already calculated
                     value = graph[c][r]
                 new_row.append(value)
-            if sum(new_row) > 0:
-                self.potential_conflicting_prs_number += 1
             graph.append(new_row)
         return graph
 
@@ -121,6 +119,22 @@ class PairwiseConflictGraphAnalyzer(object):
                         properties['fillcolor'] = color_list[i]
                         break;
         return G_nx
+
+    def get_potential_conflicting_prs_number(self):
+        potential_conflicting_prs_number = 0
+        g_nx = self.convert_to_nx_graph()
+        cliques = [c for c in nx.enumerate_all_cliques(g_nx) if len(c) > 1]
+        cliques.reverse()
+        clique_counted = []
+        for clique in cliques:
+            subclique = False
+            for c in clique_counted:
+                if set(clique).issubset(set(c)):
+                    subclique = True
+            if not subclique:
+                potential_conflicting_prs_number += len(clique)-1
+                clique_counted.append(clique)
+        return potential_conflicting_prs_number
 
     def convert_pcgg_to_nx_graph(self):
         """

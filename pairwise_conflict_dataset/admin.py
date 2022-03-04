@@ -19,12 +19,13 @@ class ProjectResource(resources.ModelResource):
 
 class ProjectAdmin(ExportMixin, admin.ModelAdmin):
     list_display = ('name', 'description', 'github_url_link', 'language', 'created_at', 'pull_requests_count',
-                    'commits_count')
+                    'commits_count', 'pairwise_conflicts_count', 'data_quality_percentage')
     date_hierarchy = 'created_at'
     list_filter = ('language',)
     search_fields = ['name',]
     readonly_fields = ('ghtorrent_id', 'name', 'description', 'github_url', 'api_url', 'language', 'created_at',
-                       'default_branch', 'raw_data', 'github_raw_data')
+                       'default_branch', 'pairwise_conflicts_count', 'data_quality_percentage', 'raw_data',
+                       'github_raw_data')
     resource_class = ProjectResource
 
     @admin.display()
@@ -38,15 +39,6 @@ class ProjectAdmin(ExportMixin, admin.ModelAdmin):
     @admin.display(ordering='commits__count')
     def commits_count(self, obj):
         return obj.commits.count()
-
-    @admin.display(ordering='pull_requests__first_pairwise_conflicts__count')
-    def pairwise_conflicts_count(self, obj):
-        # TODO: guardar en variable. Muy lento sino.
-        pairwise_conflicts_count = 0
-        for pull_request in obj.pull_requests.all():
-            pairwise_conflicts_count += pull_request.first_pairwise_conflicts.count() + \
-                                        pull_request.second_pairwise_conflicts.count()
-        return pairwise_conflicts_count / 2
 
     def has_add_permission(self, request):
         return False
