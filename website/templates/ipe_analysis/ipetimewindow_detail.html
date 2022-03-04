@@ -74,6 +74,48 @@
                 </div>
             </td>
         </tr>
+        <tr>
+            <td><h2>Cumulative cost and gain values (historical)</h2></td>
+            <td><h2>Cumulative cost and gain values (optimized)</h2></td>
+        </tr>
+        <tr>
+            <td>
+                <table>
+                    <tr>
+                        <td>Integration step</td>
+                        <td>PR ID</td>
+                        <td>Cumulative cost (x)</td>
+                        <td>Cumulative gain (y)</td>
+                    </tr>
+                    {% for x in historical_integration_sequence %}
+                        <tr>
+                            <td>{{ x.0 }}</td>
+                            <td>{{ x.1 }}</td>
+                            <td>{{ x.2 }}</td>
+                            <td>{{ x.3 }}</td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            </td>
+            <td>
+                <table>
+                    <tr>
+                        <td>Integration step</td>
+                        <td>Group</td>
+                        <td>Cumulative cost (x)</td>
+                        <td>Cumulative gain (y)</td>
+                    </tr>
+                    {% for x in optimized_integration_sequence %}
+                        <tr>
+                            <td>{{ x.0 }}</td>
+                            <td>{{ x.1 }}</td>
+                            <td>{{ x.2 }}</td>
+                            <td>{{ x.3 }}</td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            </td>
+        </tr>
     </table>
 </body>
 </html>

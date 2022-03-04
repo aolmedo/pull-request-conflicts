@@ -33,7 +33,7 @@ class GHTorrentDB(object):
     def get_selected_projects(self):
         projects = []
         query = "SELECT * FROM selected_projects WHERE id = %(id)s"
-        ret = self.execute_query(query, {'id': 17302594})
+        ret = self.execute_query(query, {'id': 1334})
         for data in ret:
             project = Project(*data)
             projects.append(project)
