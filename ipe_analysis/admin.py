@@ -1,10 +1,26 @@
 from django.contrib import admin
 from django.urls import reverse
 from django.utils.html import mark_safe
+from import_export import resources
+from import_export.admin import ExportMixin
 from ipe_analysis.models import IPETimeWindow
 
 
-class IPETimeWindowAdmin(admin.ModelAdmin):
+class IPETimeWindowResource(resources.ModelResource):
+
+    class Meta:
+        model = IPETimeWindow
+        fields = ('project__name', 'start_date', 'end_date', 'pull_requests_number', 'pairwise_conflicts_number',
+                  'potential_conflict_resolutions_number', 'unconflicting_pull_request_groups_number',
+                  'historical_conflict_resolutions_number', 'historical_ipe', 'optimized_conflict_resolutions_number',
+                  'optimized_ipe', 'ipe_improvement_percentage')
+        export_order = ('project__name', 'start_date', 'end_date', 'pull_requests_number', 'pairwise_conflicts_number',
+                        'potential_conflict_resolutions_number', 'unconflicting_pull_request_groups_number',
+                        'historical_conflict_resolutions_number', 'historical_ipe',
+                        'optimized_conflict_resolutions_number', 'optimized_ipe', 'ipe_improvement_percentage')
+
+
+class IPETimeWindowAdmin(ExportMixin, admin.ModelAdmin):
     list_display = ('project', 'start_date', 'end_date', 'pull_requests_number', 'pairwise_conflicts_number',
                     'potential_conflict_resolutions_number', 'unconflicting_pull_request_groups_number',
                     'historical_conflict_resolutions_number', 'historical_ipe', 'optimized_conflict_resolutions_number',
@@ -18,6 +34,7 @@ class IPETimeWindowAdmin(admin.ModelAdmin):
                        'optimized_conflict_resolutions_number', 'optimized_ipe', 'ipe_improvement_percentage',
                        'pairwise_conflict_graph_image', 'colored_pairwise_conflict_graph_image',
                        'pull_request_group_graph_image', 'integration_trajectories_image')
+    resource_class = IPETimeWindowResource
 
     @admin.display()
     def view_detail(self, obj):
