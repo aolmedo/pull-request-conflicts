@@ -11,6 +11,8 @@ class Project(models.Model):
     language = models.CharField(_(u'language'), max_length=255)
     created_at = models.DateTimeField(_(u'created at'))
     default_branch = models.CharField(_(u'default branch'), max_length=255, null=True, blank=True)
+    # first_pc_date = models.DateTimeField(_(u'first pairwise conflict date'), null=True, blank=True)
+    # last_pc_date = models.DateTimeField(_(u'last pairwise conflict date'), null=True, blank=True)
     pairwise_conflicts_count = models.PositiveIntegerField(_(u'pairwise conflict count'), null=True, blank=True)
     data_quality_percentage = models.DecimalField(_(u'data quality (%)'), max_digits=10, decimal_places=2,
                                                   null=True, blank=True)
@@ -30,7 +32,7 @@ class Project(models.Model):
     def get_data_quality_percentage(self, recalculate=False):
         if recalculate:
             ok_count = 0
-            for pull_request in self.pull_requests.all():
+            for pull_request in self.pull_requests.filter(merged=True):
                 if pull_request.head_commit and \
                         str(pull_request.project.ghtorrent_id) == pull_request.head_commit.raw_data.get('project_id'):
                     ok_count += 1

@@ -80,21 +80,22 @@ class GitCommandLineInterface(object):
         """
             merge commit @commit_sha_2 into commit @commit_sha_1
         """
-        merge_conflict = False
+        merge_conflict = 0
         try:
             self.checkout(commit_sha_1)
         except VersionNotFound:
             print("No se encontro la version {}".format(commit_sha_1))
             self.checkout(self.repo_head)
-            return False
+            return -1
         try:
             self.merge(commit_sha_2)
         except MergeConflictDetected:
-            merge_conflict = True
+            merge_conflict = 1
         try:
             self.merge_abort()
         except MergeAbortFail:
-            print("Ocurrio un problema al querer abortar el merge entre la version {} y la version {}"
-                  .format(commit_sha_1, commit_sha_2))
+            pass
+            # print("Ocurrio un problema al querer abortar el merge entre la version {} y la version {}"
+            #      .format(commit_sha_1, commit_sha_2))
         self.checkout(self.repo_head)
         return merge_conflict

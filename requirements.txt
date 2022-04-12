@@ -5,6 +5,7 @@ django-import-export
 requests~=2.27.1
 numpy
 matplotlib
+seaborn
 pandas
 networkx
 pygraphviz

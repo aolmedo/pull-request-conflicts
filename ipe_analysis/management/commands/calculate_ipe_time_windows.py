@@ -30,9 +30,11 @@ class Command(BaseCommand):
             if pairwise_conflicts:
                 current_date = pairwise_conflicts[0].first_pull_request.closed_at - datetime.timedelta(days=1)
                 current_date = current_date.date()
+                until_date = pairwise_conflicts.last().first_pull_request.closed_at + datetime.timedelta(days=1)
+                until_date = until_date.date()
             else:
                 current_date = project.created_at.date()
-            until_date = datetime.date(2019, 6, 1)  # TODO: project.updated_at
+                until_date = project.created_at.date()
             while current_date < until_date:
                 time_window = (current_date, current_date + datetime.timedelta(days=time_interval))
                 time_windows.append(time_window)

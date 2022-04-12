@@ -1,4 +1,5 @@
 import io
+import pandas as pd
 from matplotlib import pyplot as plt
 from django.db import models
 from django.utils.translation import gettext_lazy as _
@@ -11,6 +12,7 @@ class IPETimeWindow(models.Model):
                                 verbose_name="project", related_name='ipe_time_windows')
     start_date = models.DateTimeField(_(u'start date'))
     end_date = models.DateTimeField(_(u'end date'))
+    # tw_size = models.PositiveIntegerField(_(u'time window size'), default=14)
     pull_requests_number = models.PositiveIntegerField(_(u'# merged PRs'))
     pairwise_conflicts_number = models.PositiveIntegerField(_(u'# pairwise conflicts'))
     potential_conflict_resolutions_number = models.PositiveIntegerField(_(u'# potential conflict resolutions'))
@@ -35,6 +37,44 @@ class IPETimeWindow(models.Model):
         ordering = ["start_date"]
         verbose_name = _("IPE time window")
         verbose_name_plural = _(u"IPE time windows")
+
+
+class ProjectIPEStats(models.Model):
+    project = models.ForeignKey(Project, on_delete=models.PROTECT,
+                                verbose_name="project", related_name='ipe_stats')
+    tw_size = models.PositiveIntegerField(_(u'time window size'))
+    tw_quantity = models.PositiveIntegerField(_(u'# time windows'))
+    tw_with_pc_percentage = models.DecimalField(_(u'% time windows with pairwise conflicts'),
+                                                max_digits=10, decimal_places=2)
+    # images
+    hist_tw_without_pc = models.ImageField(upload_to='hist_tw_without_pc', null=True, blank=True)
+    hist_tw_with_pc = models.ImageField(upload_to='hist_tw_with_pc', null=True, blank=True)
+    corr_matrix_tw_with_pc = models.ImageField(upload_to='corr_matrix_tw_with_pc', null=True, blank=True)
+    cov_matrix_tw_with_pc = models.ImageField(upload_to='cov_matrix_tw_with_pc', null=True, blank=True)
+
+    def tw_without_pc_dataframe(self):
+        tws = self.project.ipe_time_windows.filter(pairwise_conflicts_number=0)
+        df = pd.DataFrame.from_records(list(tws.values()), coerce_float=True)
+        df = df.drop(columns=['id', 'project_id', 'start_date', 'end_date', 'tw_size', 'pairwise_conflict_graph_image',
+                              'colored_pairwise_conflict_graph_image', 'pull_request_group_graph_image',
+                              'integration_trajectories_image'])
+        return df
+
+    def tw_with_pc_dataframe(self):
+        tws = self.project.ipe_time_windows.filter(pairwise_conflicts_number__gt=0)
+        df = pd.DataFrame.from_records(list(tws.values()),  coerce_float=True)
+        df = df.drop(columns=['id', 'project_id', 'start_date', 'end_date', 'tw_size', 'pairwise_conflict_graph_image',
+                              'colored_pairwise_conflict_graph_image', 'pull_request_group_graph_image',
+                              'integration_trajectories_image'])
+        return df
+
+    def __str__(self):
+        return "{} IPE stats".format(self.project.name)
+
+    class Meta:
+        ordering = ["project__created_at", "tw_size"]
+        verbose_name = _("project IPE stats")
+        verbose_name_plural = _(u"projects IPE stats")
 
 
 class IPECalculation(object):
