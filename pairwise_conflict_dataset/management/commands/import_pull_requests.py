@@ -22,7 +22,7 @@ class Command(BaseCommand):
             directory_path = options.get('directory_path')
         else:
             directory_path = settings.GHTORRENT_IMPORT_PATH + "/pull_requests/"
-        for project in projects:
+        for project in projects.filter(pull_requests__isnull=True).order_by('created_at'):
             file_path = directory_path + "{}_pull_requests.csv".format(project.name.lower())
             with open(file_path, 'r') as pull_requests_file:
                 reader = csv.DictReader(pull_requests_file)

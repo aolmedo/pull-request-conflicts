@@ -20,7 +20,8 @@ class Command(BaseCommand):
         else:
             projects = Project.objects.all()
         for project in projects:
-            for pull_request in project.pull_requests.filter(github_raw_data__isnull=True):
+            for pull_request in project.pull_requests.filter(merged=True,
+                                                             github_raw_data__isnull=True):
                 pr_json = GithubAPI.get_pull_request_info(pull_request)
                 requests_count += 1
                 base_branch = pr_json and pr_json.get('base') and pr_json.get('base').get('label') or ''

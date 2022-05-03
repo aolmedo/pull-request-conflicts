@@ -22,7 +22,7 @@ class Command(BaseCommand):
             directory_path = options.get('directory_path')
         else:
             directory_path = settings.GHTORRENT_IMPORT_PATH + "/commits/"
-        for project in projects:
+        for project in projects.filter(commits__isnull=True).order_by('created_at'):
             file_path = directory_path + "{}_commits.csv".format(project.name.lower())
             with open(file_path, 'r') as commits_file:
                 reader = csv.DictReader(commits_file)
