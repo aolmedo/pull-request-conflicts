@@ -7,9 +7,11 @@ import subprocess
 
 def main():
     from pairwise_conflict_dataset.models import Project
-    projects = Project.objects.all().order_by('created_at')
+    projects = Project.objects.filter(pairwise_conflicts_count__isnull=True).order_by('created_at')
     total_count = len(projects)
     for i, project in enumerate(projects):
+        project.pairwise_conflicts_count = 0
+        project.save()
         print(i + 1, "/", total_count)
         print(project.name)
         # import commits
