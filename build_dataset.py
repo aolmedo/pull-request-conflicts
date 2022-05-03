@@ -34,6 +34,8 @@ def main():
         print("get pairwise conflicts")
         subprocess.run(["python", "manage.py", "get_pairwise_conflicts", "--project_name", project.name],
                        capture_output=True)
+        project.get_pairwise_conflicts_count(recalculate=True)
+        project.get_data_quality_percentage(recalculate=True)
 
 
 if __name__ == "__main__":
