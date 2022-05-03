@@ -19,9 +19,7 @@ class Command(BaseCommand):
         else:
             projects = Project.objects.all()
 
-        for project in projects.filter(pull_requests__first_pairwise_conflicts__isnull=False,
-                                       pull_requests__second_pairwise_conflicts__isnull=False
-                                       ).distinct().order_by('created_at'):
+        for project in projects.filter(pairwise_conflicts_count__lte=0).order_by('created_at'):
             self.git_cmd = GitCommandLineInterface(project)
             self.git_cmd.clone()
             total_prs = 0
