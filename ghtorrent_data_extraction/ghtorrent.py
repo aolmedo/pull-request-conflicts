@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import psycopg2
-import settings
-from models import Project
+from . import settings
+from .models import Project
 
 
 class GHTorrentDB(object):
@@ -37,6 +37,7 @@ class GHTorrentDB(object):
         for data in ret:
             project = Project(*data)
             project.name = project.name.replace('-', '_')
+            project.name = project.name.replace('.', '_')
             projects.append(project)
         return projects
 
