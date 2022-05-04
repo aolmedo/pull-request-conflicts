@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import psycopg2
-from . import settings
-from .models import Project
+import settings
+from models import Project
 
 
 class GHTorrentDB(object):
@@ -36,6 +36,7 @@ class GHTorrentDB(object):
         ret = self.execute_query(query)
         for data in ret:
             project = Project(*data)
+            project.name = project.name.replace('-', '_')
             projects.append(project)
         return projects
 
@@ -66,13 +67,13 @@ class GHTorrentDB(object):
     def export_pull_requests_for_project(self, project):
         query = "COPY (SELECT * FROM {}_pull_requests ORDER BY opened_at) TO STDOUT " \
                 "DELIMITER ',' CSV HEADER".format(project.name.lower())
-        file_path = settings.GHTORRENT_EXPORT_PATH + "pull_requests/{}_pull_requests.csv".format(project.name.lower())
+        file_path = settings.GHTORRENT_EXPORT_PATH + "/pull_requests/{}_pull_requests.csv".format(project.name.lower())
         with open(file_path, "w") as table_file:
             self.copy_to(query, table_file)
 
     def export_commits_for_project(self, project):
         query = "COPY (SELECT * FROM {}_commits ORDER BY created_at) TO STDOUT "\
                 "DELIMITER ',' CSV HEADER".format(project.name.lower())
-        file_path = settings.GHTORRENT_EXPORT_PATH + "commits/{}_commits.csv".format(project.name.lower())
+        file_path = settings.GHTORRENT_EXPORT_PATH + "/commits/{}_commits.csv".format(project.name.lower())
         with open(file_path, "w") as table_file:
             self.copy_to(query, table_file)
