@@ -71,7 +71,7 @@ class GitCommandLineInterface(object):
         """
             checkout the commit @commit_sha
         """
-        result = subprocess.run(['git', 'checkout', commit_sha],
+        result = subprocess.run(['git', 'checkout', commit_sha, '--force'],
                                 cwd=self.repo_path, capture_output=True)
         if result.returncode != 0:
             raise VersionNotFound(result.stderr)
