@@ -12,10 +12,12 @@ class PairwiseConflictGraphAnalyzer(object):
 
     def __init__(self, project, pull_requests):
         self.project = project
+        self.pull_requests = pull_requests
         self.pull_request_ids = [str(pr.github_id) for pr in pull_requests]
         self.pairwise_conflict_number = 0
-        self.pairwise_conflict_graph = self.make_pairwise_conflict_graph(pull_requests)
         self.groups = self.color_pairwise_conflict_graph()
+        self.pairwise_conflict_number = 0
+        self.pairwise_conflict_graph = self.make_pairwise_conflict_graph(pull_requests)
         self.potential_conflicting_prs_number = self.get_potential_conflicting_prs_number()
         self.pairwise_conflict_group_graph = self.make_pairwise_conflict_group_graph()
         self.optimal_integration_sequence = self.get_optimal_integration_sequence()
@@ -44,6 +46,16 @@ class PairwiseConflictGraphAnalyzer(object):
             graph.append(new_row)
         return graph
 
+    def pr_with_conflict(self, a_pull_request):
+        ret = False
+        for another_pull_request in self.pull_requests:
+            if (a_pull_request.first_pairwise_conflicts.filter(
+                    second_pull_request=another_pull_request).exists() or
+                    a_pull_request.second_pairwise_conflicts.filter(
+                        first_pull_request=another_pull_request).exists()):
+                ret = True
+        return ret
+
     def color_pairwise_conflict_graph(self):
         conflict_matrix_path = settings.CONFLICT_MATRIX_PATH
         self.store_pairwise_conflict_graph(conflict_matrix_path)
@@ -54,16 +66,23 @@ class PairwiseConflictGraphAnalyzer(object):
         groups_str = result.stdout.decode('utf-8').split('\n')[:-1]
         for group_str in groups_str:
             groups.append(group_str.split(','))
-
+        prs_without_conflicts = [str(pr.github_id) for pr in self.pull_requests if not self.pr_with_conflict(pr)]
+        if groups:
+            groups[0] = groups[0] + prs_without_conflicts
+        else:
+            groups = [prs_without_conflicts]
         return groups
 
     def store_pairwise_conflict_graph(self, conflict_matrix_path):
         filename = '{}/matrix.csv'.format(conflict_matrix_path)
+        prs_with_conflicts = [pr for pr in self.pull_requests if self.pr_with_conflict(pr)]
+        _pairwise_conflict_graph = self.make_pairwise_conflict_graph(prs_with_conflicts)
+        prs_with_conflicts_ids = [str(pr.github_id) for pr in prs_with_conflicts]
         with open(filename, 'w') as csv_file:
             csv_writer = csv.writer(csv_file)
-            csv_writer.writerow(['0'] + self.pull_request_ids)
-            for i in range(len(self.pull_request_ids)):
-                csv_writer.writerow([self.pull_request_ids[i]] + self.pairwise_conflict_graph[i])
+            csv_writer.writerow(['0'] + prs_with_conflicts_ids)
+            for i in range(len(prs_with_conflicts_ids)):
+                csv_writer.writerow([prs_with_conflicts_ids[i]] + _pairwise_conflict_graph[i])
 
     def make_pairwise_conflict_group_graph(self):
         graph = []
