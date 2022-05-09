@@ -3,7 +3,7 @@ from django.urls import reverse
 from django.utils.html import mark_safe
 from import_export import resources
 from import_export.admin import ExportMixin
-from ipe_analysis.models import IPETimeWindow
+from ipe_analysis.models import IPETimeWindow, ProjectIPEStats
 
 
 class IPETimeWindowResource(resources.ModelResource):
@@ -21,14 +21,14 @@ class IPETimeWindowResource(resources.ModelResource):
 
 
 class IPETimeWindowAdmin(ExportMixin, admin.ModelAdmin):
-    list_display = ('project', 'start_date', 'end_date', 'pull_requests_number', 'pairwise_conflicts_number',
+    list_display = ('project', 'tw_size', 'start_date', 'end_date', 'pull_requests_number', 'pairwise_conflicts_number',
                     'potential_conflict_resolutions_number', 'unconflicting_pull_request_groups_number',
                     'historical_conflict_resolutions_number', 'historical_ipe', 'optimized_conflict_resolutions_number',
                     'optimized_ipe', 'ipe_improvement_percentage', 'view_detail')
     date_hierarchy = 'start_date'
-    list_filter = ('project',)
+    list_filter = ('project', 'tw_size',)
     search_fields = ['project__name', ]
-    readonly_fields = ('project', 'start_date', 'end_date', 'pull_requests_number', 'pairwise_conflicts_number',
+    readonly_fields = ('project', 'tw_size', 'start_date', 'end_date', 'pull_requests_number', 'pairwise_conflicts_number',
                        'potential_conflict_resolutions_number', 'unconflicting_pull_request_groups_number',
                        'historical_conflict_resolutions_number', 'historical_ipe',
                        'optimized_conflict_resolutions_number', 'optimized_ipe', 'ipe_improvement_percentage',
@@ -48,4 +48,20 @@ class IPETimeWindowAdmin(ExportMixin, admin.ModelAdmin):
         return False
 
 
+class ProjectIPEStatsAdmin(admin.ModelAdmin):
+    list_display = ('project', 'tw_size', 'tw_quantity', 'tw_with_pc_percentage', 'tw_improves_ipe_quantity',
+                    'tw_equal_ipe_quantity', 'tw_not_improves_ipe_quantity')
+    list_filter = ('project', 'tw_size',)
+    search_fields = ['project__name', ]
+    readonly_fields = ('project', 'tw_size', 'tw_quantity', 'tw_with_pc_percentage', 'tw_improves_ipe_quantity',
+                       'tw_equal_ipe_quantity', 'tw_not_improves_ipe_quantity')
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
 admin.site.register(IPETimeWindow, IPETimeWindowAdmin)
+admin.site.register(ProjectIPEStats, ProjectIPEStatsAdmin)

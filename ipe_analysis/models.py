@@ -1,7 +1,10 @@
 import io
+import math
 import pandas as pd
 from matplotlib import pyplot as plt
+import seaborn as sns
 from django.db import models
+from django.core.files.base import ContentFile
 from django.utils.translation import gettext_lazy as _
 from pairwise_conflict_dataset.models import Project
 from pull_request_prioritization.pairwise_conflict_analyzer import PairwiseConflictGraphAnalyzer
@@ -12,7 +15,7 @@ class IPETimeWindow(models.Model):
                                 verbose_name="project", related_name='ipe_time_windows')
     start_date = models.DateTimeField(_(u'start date'))
     end_date = models.DateTimeField(_(u'end date'))
-    # tw_size = models.PositiveIntegerField(_(u'time window size'), default=14)
+    tw_size = models.PositiveIntegerField(_(u'time window size'), default=14)
     pull_requests_number = models.PositiveIntegerField(_(u'# merged PRs'))
     pairwise_conflicts_number = models.PositiveIntegerField(_(u'# pairwise conflicts'))
     potential_conflict_resolutions_number = models.PositiveIntegerField(_(u'# potential conflict resolutions'))
@@ -42,15 +45,29 @@ class IPETimeWindow(models.Model):
 class ProjectIPEStats(models.Model):
     project = models.ForeignKey(Project, on_delete=models.PROTECT,
                                 verbose_name="project", related_name='ipe_stats')
-    tw_size = models.PositiveIntegerField(_(u'time window size'))
+    tw_size = models.PositiveIntegerField(_(u'time window size'), default=14)
     tw_quantity = models.PositiveIntegerField(_(u'# time windows'))
     tw_with_pc_percentage = models.DecimalField(_(u'% time windows with pairwise conflicts'),
                                                 max_digits=10, decimal_places=2)
+    tw_improves_ipe_quantity = models.PositiveIntegerField(_(u'# time windows improve IPE'))
+    tw_equal_ipe_quantity = models.PositiveIntegerField(_(u'# time windows equal IPE'))
+    tw_not_improves_ipe_quantity = models.PositiveIntegerField(_(u'# time windows not improve IPE'))
+
     # images
     hist_tw_without_pc = models.ImageField(upload_to='hist_tw_without_pc', null=True, blank=True)
     hist_tw_with_pc = models.ImageField(upload_to='hist_tw_with_pc', null=True, blank=True)
     corr_matrix_tw_with_pc = models.ImageField(upload_to='corr_matrix_tw_with_pc', null=True, blank=True)
-    cov_matrix_tw_with_pc = models.ImageField(upload_to='cov_matrix_tw_with_pc', null=True, blank=True)
+    boxplot_conflict_resolutions_tw_with_pc = models.ImageField(upload_to='boxplot_conflict_resolutions_tw_with_pc',
+                                                                null=True, blank=True)
+    # cov_matrix_tw_with_pc = models.ImageField(upload_to='cov_matrix_tw_with_pc', null=True, blank=True)
+
+    def tw_without_pc_quantity(self):
+        return self.project.ipe_time_windows.filter(tw_size=self.tw_size,
+                                                    pairwise_conflicts_number=0).count()
+
+    def tw_with_pc_quantity(self):
+        return self.project.ipe_time_windows.filter(tw_size=self.tw_size,
+                                                    pairwise_conflicts_number__gt=0).count()
 
     def tw_without_pc_dataframe(self):
         tws = self.project.ipe_time_windows.filter(pairwise_conflicts_number=0)
@@ -67,6 +84,105 @@ class ProjectIPEStats(models.Model):
                               'colored_pairwise_conflict_graph_image', 'pull_request_group_graph_image',
                               'integration_trajectories_image'])
         return df
+
+    def tw_without_pc_hist(self):
+        file_name = '{}_{}_hist_tw_without_pc.png'.format(self.project.name, self.tw_size)
+        figure = io.BytesIO()
+
+        df = self.tw_without_pc_dataframe()
+
+        ax = df.hist(column='pull_requests_number')
+        fig = ax[0][0].get_figure()
+
+        fig.savefig(figure, format='png')
+        plt.clf()
+
+        self.hist_tw_without_pc.save(file_name, ContentFile(figure.getvalue()), save=True)
+
+    def tw_with_pc_hist(self):
+        file_name = '{}_{}_hist_tw_with_pc.png'.format(self.project.name, self.tw_size)
+        figure = io.BytesIO()
+
+        df = self.tw_with_pc_dataframe()
+
+        ax = df.hist()
+        fig = ax[0][0].get_figure()
+        fig.set_size_inches(14, 12)
+
+        fig.savefig(figure, format='png')
+        plt.clf()
+
+        self.hist_tw_with_pc.save(file_name, ContentFile(figure.getvalue()), save=True)
+
+    def tw_with_pc_stats(self):
+        df = self.tw_with_pc_dataframe()
+        return dict(df.describe())
+
+    def tw_with_pc_corr_matrix(self):
+        file_name = '{}_{}_correlation_matrix.png'.format(self.project.name, self.tw_size)
+        figure = io.BytesIO()
+
+        df = self.tw_with_pc_dataframe()
+        corr = df.corr()
+        ax = sns.heatmap(corr, annot=True, vmin=-1, vmax=1,
+                         xticklabels=["#PRs", "#Pairwise Conflicts", "#Potetntial CR", "#Unconflicting PR groups",
+                                      "#Historical CR", "Historicla IPE", "#Optimized CR", "Optimized IPE",
+                                      "IPE improvement %"],
+                         yticklabels=["#PRs", "#Pairwise Conflicts", "#Potetntial CR", "#Unconflicting PR groups",
+                                      "#Historical CR", "Historicla IPE", "#Optimized CR", "Optimized IPE",
+                                      "IPE improvement %"])
+        ax.set_xticklabels(ax.get_xticklabels(), rotation=45)
+        ax.figure.set_size_inches(16, 14)
+        ax.figure.savefig(figure, format='png')
+        plt.clf()
+
+        self.corr_matrix_tw_with_pc.save(file_name, ContentFile(figure.getvalue()), save=True)
+
+    def tw_with_pc_boxplot_conflict_resolutions(self):
+        file_name = '{}_{}_boxplot_conflict_resolutions.png'.format(self.project.name, self.tw_size)
+        figure = io.BytesIO()
+
+        df = self.tw_with_pc_dataframe()
+        df_2 = df.drop(
+            columns=[
+                "pull_requests_number",
+                "pairwise_conflicts_number",
+                "unconflicting_pull_request_groups_number",
+                "historical_ipe",
+                "optimized_ipe",
+                "ipe_improvement_percentage",
+            ]
+        )
+        ax = df_2.boxplot()
+        ax.figure.set_size_inches(14, 12)
+        ax.figure.savefig(figure, format='png')
+        plt.clf()
+
+        self.boxplot_conflict_resolutions_tw_with_pc.save(file_name, ContentFile(figure.getvalue()), save=True)
+
+    def multiple_correlation(self, x, y, z):
+        """
+            Independent variables: x and y
+
+            Dependent variable: z
+        """
+        # https://stackoverflow.com/questions/55369159/how-to-perform-three-variable-correlation-with-python-pandas
+        df = self.tw_with_pc_dataframe()
+        cor = df.corr()
+
+        # Pairings
+        xz = cor.loc[x, z]
+        yz = cor.loc[y, z]
+        xy = cor.loc[x, y]
+
+        Rxyz = math.sqrt((abs(xz ** 2) + abs(yz ** 2) - 2 * xz * yz * xy) / (1 - abs(xy ** 2)))
+        R2 = Rxyz ** 2
+
+        # Calculate adjusted R-squared
+        n = len(df)  # Number of rows
+        k = 2  # Number of independent variables
+        R2_adj = 1 - (((1 - R2) * (n - 1)) / (n - k - 1))
+        return R2, R2_adj
 
     def __str__(self):
         return "{} IPE stats".format(self.project.name)

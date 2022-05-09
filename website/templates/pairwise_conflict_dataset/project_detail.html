@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        table, th, td {
+            border: 1px solid;
+            text-align: center;
+            padding: 5px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+    </style>
+    <title>Project: {{ object.name.capitalize }}</title>
+</head>
+<body>
+    <h1>Project: {{ object.name.capitalize }}</h1>
+    <span><b>Created at: </b></span> {{ object.created_at }} <br>
+    <span><b>Language: </b></span> {{ object.language }} <br>
+    <span><b>Description: </b></span> {{ object.description }} <br>
+    <h2>Pull Requests info</h2>
+    <span><b># PRs: </b></span> {{ prs_number }} <br>
+    <span><b># Merged PRs: </b></span> {{ merged_prs_number }} <br>
+    <span><b># Intra-branch merged PRs: </b></span> {{ intra_branch_merged_prs_number }} <br>
+    <span><b>First PR date: </b></span> {{ first_pr_date }} <br>
+    <span><b>Last PR date: </b></span> {{ last_pr_date }} <br>
+    <h2>Pairwise Conflicts info</h2>
+    <span><b># Pairwise Conflicts: </b></span> {{ pc_number }} <br>
+    <span><b>First Pairwise Conflicts date: </b></span> {{ first_pc_date }} <br>
+    <span><b>Last Pairwise Conflicts date: </b></span> {{ last_pc_date }} <br>
+    <h2>Time Windows</h2>
+    {% for tw_ipe_stats in tws_ipe_stats %}
+        <h3>{{ tw_ipe_stats.tw_size }}-day time windows</h3>
+        <span><b># Time Windows: </b></span> {{ tw_ipe_stats.tw_quantity }} <br>
+        <span><b># Time Windows without conflict: </b></span> {{ tw_ipe_stats.tw_without_pc_quantity }} <br>
+        <span><b># Time Windows with conflict: </b></span> {{ tw_ipe_stats.tw_with_pc_quantity }} <br>
+        <span><b>% Time Windows with pairwise conflicts: </b></span> {{ tw_ipe_stats.tw_with_pc_percentage }}% <br>
+        <span><b># Time Windows that improve historical IPE: </b></span> {{ tw_ipe_stats.tw_improves_ipe_quantity }} <br>
+        <span><b># Time Windows that not improve historical IPE: </b></span> {{ tw_ipe_stats.tw_not_improves_ipe_quantity }} <br>
+        <span><b># Time Windows equal historical IPE: </b></span> {{ tw_ipe_stats.tw_equal_ipe_quantity }} <br>
+        <h4>Time Windows without pairwise conflicts histogram</h4>
+        <div>
+            <img src="{{ tw_ipe_stats.hist_tw_without_pc.url }}" alt="PR number hist">
+        </div>
+        <h4>Time Windows with pairwise conflicts histogram</h4>
+        <div>
+            <img width="60%" src="{{ tw_ipe_stats.hist_tw_with_pc.url }}" alt="hist">
+        </div>
+        <h4>Time Windows with pairwise conflicts. Descriptive statistics</h4>
+        {% for key, value in tw_ipe_stats.tw_with_pc_stats.items %}
+            {{ key }}<br>
+            {{ value }}<br>
+        {% endfor %}
+        <h4>Correlation Matrix</h4>
+        <div>
+            <img width="60%" src="{{ tw_ipe_stats.corr_matrix_tw_with_pc.url }}" alt="Correlation Matrix">
+        </div>
+        <h4>Conflict Resolutions Boxplot</h4>
+        <div>
+            <img width="60%" src="{{ tw_ipe_stats.boxplot_conflict_resolutions_tw_with_pc.url }}" alt="Correlation Matrix">
+        </div>
+    {% endfor %}
+    <!--
+    <table>
+        <tr><td colspan="9"><h2>Data</h2></td></tr>
+        <tr>
+            <td># Merged PRs</td>
+            <td># Pairwise Conflicts</td>
+            <td># Potential Conflict Resolutions</td>
+            <td># Unconflicting PR Groups</td>
+            <td># Historical Conflict Resolution</td>
+            <td>Historical IPE</td>
+            <td># Optimized Conflict Resolution</td>
+            <td>Optimized IPE</td>
+            <td>IPE Improvement (%)</td>
+        </tr>
+        <tr>
+            <td>{{ object.pull_requests_number }}</td>
+            <td>{{ object.pairwise_conflicts_number }}</td>
+            <td>{{ object.potential_conflict_resolutions_number }}</td>
+            <td>{{ object.unconflicting_pull_request_groups_number }}</td>
+            <td>{{ object.historical_conflict_resolutions_number }}</td>
+            <td>{{ object.historical_ipe }}</td>
+            <td>{{ object.optimized_conflict_resolutions_number }}</td>
+            <td>{{ object.optimized_ipe }}</td>
+            <td>{{ object.ipe_improvement_percentage }}</td>
+        </tr>
+    </table>
+    <div style="min-height: 50px"></div>
+    <table>
+        <tr>
+            <td><h2>Pairwise Conflict Graph</h2></td>
+            <td><h2>Colored Pairwise Conflict Graph</h2></td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    <img src="{{ object.pairwise_conflict_graph_image.url }}" alt="Pairwise Conflict Graph">
+                </div>
+            </td>
+            <td>
+                <div>
+                    <img src="{{ object.colored_pairwise_conflict_graph_image.url }}" alt="Colored Pairwise Conflict Graph">
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td><h2>Pull Request Group Graph</h2></td>
+            <td><h2>Integration trajectories - IPE</h2></td>
+        </tr>
+        <tr>
+            <td>
+                <div>
+                    <img src="{{ object.pull_request_group_graph_image.url }}" alt="Pull Request Group Graph">
+                </div>
+            </td>
+            <td>
+                <div>
+                    <img src="{{ object.integration_trajectories_image.url }}" alt="Integration Trajectories">
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td><h2>Cumulative cost and gain values (historical)</h2></td>
+            <td><h2>Cumulative cost and gain values (optimized)</h2></td>
+        </tr>
+        <tr>
+            <td>
+                <table>
+                    <tr>
+                        <td>Integration step</td>
+                        <td>PR ID</td>
+                        <td>Cumulative cost (x)</td>
+                        <td>Cumulative gain (y)</td>
+                    </tr>
+                    {% for x in historical_integration_sequence %}
+                        <tr>
+                            <td>{{ x.0 }}</td>
+                            <td>{{ x.1 }}</td>
+                            <td>{{ x.2 }}</td>
+                            <td>{{ x.3 }}</td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            </td>
+            <td>
+                <table>
+                    <tr>
+                        <td>Integration step</td>
+                        <td>Group</td>
+                        <td>Cumulative cost (x)</td>
+                        <td>Cumulative gain (y)</td>
+                    </tr>
+                    {% for x in optimized_integration_sequence %}
+                        <tr>
+                            <td>{{ x.0 }}</td>
+                            <td>{{ x.1 }}</td>
+                            <td>{{ x.2 }}</td>
+                            <td>{{ x.3 }}</td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            </td>
+        </tr>
+    </table>
+    -->
+</body>
+</html>
