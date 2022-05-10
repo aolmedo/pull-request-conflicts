@@ -17,7 +17,7 @@ class Command(BaseCommand):
         else:
             projects = Project.objects.all()
         if options.get('tw_size'):
-            tw_size = options.get('tw_size')
+            tw_size = int(options.get('tw_size'))
         else:
             tw_size = 14
         for project in projects:

@@ -20,7 +20,7 @@ class Command(BaseCommand):
         else:
             projects = Project.objects.all()
         if options.get('time_interval'):
-            time_interval = options.get('time_interval')
+            time_interval = int(options.get('time_interval'))
         else:
             time_interval = 14
         for project in projects:
@@ -45,7 +45,8 @@ class Command(BaseCommand):
                 ipe_data = IPECalculation(project, date_from, date_to)
                 if not ipe_data.pull_requests:
                     continue;
-                ipe_time_window = IPETimeWindow.objects.create(project=project, start_date=date_from, end_date=date_to,
+                ipe_time_window = IPETimeWindow.objects.create(project=project, tw_size=time_interval,
+                                                               start_date=date_from, end_date=date_to,
                                                                pull_requests_number=ipe_data.pull_requests.count(),
                                                                pairwise_conflicts_number=ipe_data.pcga.
                                                                pairwise_conflict_number,

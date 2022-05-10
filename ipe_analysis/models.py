@@ -70,7 +70,8 @@ class ProjectIPEStats(models.Model):
                                                     pairwise_conflicts_number__gt=0).count()
 
     def tw_without_pc_dataframe(self):
-        tws = self.project.ipe_time_windows.filter(pairwise_conflicts_number=0)
+        tws = self.project.ipe_time_windows.filter(tw_size=self.tw_size,
+                                                   pairwise_conflicts_number=0)
         df = pd.DataFrame.from_records(list(tws.values()), coerce_float=True)
         df = df.drop(columns=['id', 'project_id', 'start_date', 'end_date', 'tw_size', 'pairwise_conflict_graph_image',
                               'colored_pairwise_conflict_graph_image', 'pull_request_group_graph_image',
@@ -78,7 +79,8 @@ class ProjectIPEStats(models.Model):
         return df
 
     def tw_with_pc_dataframe(self):
-        tws = self.project.ipe_time_windows.filter(pairwise_conflicts_number__gt=0)
+        tws = self.project.ipe_time_windows.filter(tw_size=self.tw_size,
+                                                   pairwise_conflicts_number__gt=0)
         df = pd.DataFrame.from_records(list(tws.values()),  coerce_float=True)
         df = df.drop(columns=['id', 'project_id', 'start_date', 'end_date', 'tw_size', 'pairwise_conflict_graph_image',
                               'colored_pairwise_conflict_graph_image', 'pull_request_group_graph_image',
