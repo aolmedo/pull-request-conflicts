@@ -157,26 +157,28 @@
             <span><b># Time Windows that improve historical IPE: </b></span> {{ tw_ipe_stats.tw_improves_ipe_quantity }} <br>
             <span><b># Time Windows that not improve historical IPE: </b></span> {{ tw_ipe_stats.tw_not_improves_ipe_quantity }} <br>
             <span><b># Time Windows equal historical IPE: </b></span> {{ tw_ipe_stats.tw_equal_ipe_quantity }} <br>
-            <h4>Time Windows without pairwise conflicts histogram</h4>
-            <div>
-                {% if tw_ipe_stats.tw_without_pc_quantity > 0 %}
+            {% if tw_ipe_stats.tw_without_pc_quantity > 0 %}
+                <h4>Time Windows without pairwise conflicts histogram</h4>
+                <div>
                     <img src="{{ tw_ipe_stats.hist_tw_without_pc.url }}" alt="PR number hist">
-                {% endif %}
-            </div>
-            <h4>Time Windows with pairwise conflicts histogram</h4>
-            <div>
-                <img width="60%" src="{{ tw_ipe_stats.hist_tw_with_pc.url }}" alt="hist">
-            </div>
-            <h4>Time Windows with pairwise conflicts. Descriptive statistics</h4>
-            {{ tw_ipe_stats.tw_with_pc_stats.to_html | safe }}
-            <h4>Correlation Matrix</h4>
-            <div>
-                <img width="60%" src="{{ tw_ipe_stats.corr_matrix_tw_with_pc.url }}" alt="Correlation Matrix">
-            </div>
-            <h4>Conflict Resolutions Boxplot</h4>
-            <div>
-                <img width="60%" src="{{ tw_ipe_stats.boxplot_conflict_resolutions_tw_with_pc.url }}" alt="Correlation Matrix">
-            </div>
+                </div>
+            {% endif %}
+            {% if tw_ipe_stats.tw_with_pc_quantity > 0 %}
+                <h4>Time Windows with pairwise conflicts histogram</h4>
+                <div>
+                    <img width="60%" src="{{ tw_ipe_stats.hist_tw_with_pc.url }}" alt="hist">
+                </div>
+                <h4>Time Windows with pairwise conflicts. Descriptive statistics</h4>
+                {{ tw_ipe_stats.tw_with_pc_stats.to_html | safe }}
+                <h4>Correlation Matrix</h4>
+                <div>
+                    <img width="60%" src="{{ tw_ipe_stats.corr_matrix_tw_with_pc.url }}" alt="Correlation Matrix">
+                </div>
+                <h4>Conflict Resolutions Boxplot</h4>
+                <div>
+                    <img width="60%" src="{{ tw_ipe_stats.boxplot_conflict_resolutions_tw_with_pc.url }}" alt="Correlation Matrix">
+                </div>
+            {% endif %}
         </div>
     {% endfor %}
 </body>

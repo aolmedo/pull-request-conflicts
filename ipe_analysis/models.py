@@ -109,60 +109,63 @@ class ProjectIPEStats(models.Model):
 
         df = self.tw_with_pc_dataframe()
 
-        ax = df.hist()
-        fig = ax[0][0].get_figure()
-        fig.set_size_inches(14, 12)
+        if len(df) > 0:
+            ax = df.hist()
+            fig = ax[0][0].get_figure()
+            fig.set_size_inches(14, 12)
 
-        fig.savefig(figure, format='png')
-        plt.clf()
+            fig.savefig(figure, format='png')
+            plt.clf()
 
-        self.hist_tw_with_pc.save(file_name, ContentFile(figure.getvalue()), save=True)
+            self.hist_tw_with_pc.save(file_name, ContentFile(figure.getvalue()), save=True)
 
     def tw_with_pc_stats(self):
         df = self.tw_with_pc_dataframe()
         return df.describe()
 
     def tw_with_pc_corr_matrix(self):
-        file_name = '{}_{}_correlation_matrix.png'.format(self.project.name, self.tw_size)
-        figure = io.BytesIO()
-
         df = self.tw_with_pc_dataframe()
-        corr = df.corr()
-        ax = sns.heatmap(corr, annot=True, vmin=-1, vmax=1,
-                         xticklabels=["#PRs", "#Pairwise Conflicts", "#Potetntial CR", "#Unconflicting PR groups",
-                                      "#Historical CR", "Historicla IPE", "#Optimized CR", "Optimized IPE",
-                                      "IPE improvement %"],
-                         yticklabels=["#PRs", "#Pairwise Conflicts", "#Potetntial CR", "#Unconflicting PR groups",
-                                      "#Historical CR", "Historicla IPE", "#Optimized CR", "Optimized IPE",
-                                      "IPE improvement %"])
-        ax.set_xticklabels(ax.get_xticklabels(), rotation=45)
-        ax.figure.set_size_inches(16, 14)
-        ax.figure.savefig(figure, format='png')
-        plt.clf()
+        if len(df) > 0:
+            file_name = '{}_{}_correlation_matrix.png'.format(self.project.name, self.tw_size)
+            figure = io.BytesIO()
 
-        self.corr_matrix_tw_with_pc.save(file_name, ContentFile(figure.getvalue()), save=True)
+            corr = df.corr()
+            ax = sns.heatmap(corr, annot=True, vmin=-1, vmax=1,
+                             xticklabels=["#PRs", "#Pairwise Conflicts", "#Potetntial CR", "#Unconflicting PR groups",
+                                          "#Historical CR", "Historicla IPE", "#Optimized CR", "Optimized IPE",
+                                          "IPE improvement %"],
+                             yticklabels=["#PRs", "#Pairwise Conflicts", "#Potetntial CR", "#Unconflicting PR groups",
+                                          "#Historical CR", "Historicla IPE", "#Optimized CR", "Optimized IPE",
+                                          "IPE improvement %"])
+            ax.set_xticklabels(ax.get_xticklabels(), rotation=45)
+            ax.figure.set_size_inches(16, 14)
+            ax.figure.savefig(figure, format='png')
+            plt.clf()
+
+            self.corr_matrix_tw_with_pc.save(file_name, ContentFile(figure.getvalue()), save=True)
 
     def tw_with_pc_boxplot_conflict_resolutions(self):
-        file_name = '{}_{}_boxplot_conflict_resolutions.png'.format(self.project.name, self.tw_size)
-        figure = io.BytesIO()
-
         df = self.tw_with_pc_dataframe()
-        df_2 = df.drop(
-            columns=[
-                "pull_requests_number",
-                "pairwise_conflicts_number",
-                "unconflicting_pull_request_groups_number",
-                "historical_ipe",
-                "optimized_ipe",
-                "ipe_improvement_percentage",
-            ]
-        )
-        ax = df_2.boxplot()
-        ax.figure.set_size_inches(14, 12)
-        ax.figure.savefig(figure, format='png')
-        plt.clf()
+        if len(df) > 0:
+            file_name = '{}_{}_boxplot_conflict_resolutions.png'.format(self.project.name, self.tw_size)
+            figure = io.BytesIO()
 
-        self.boxplot_conflict_resolutions_tw_with_pc.save(file_name, ContentFile(figure.getvalue()), save=True)
+            df_2 = df.drop(
+                columns=[
+                    "pull_requests_number",
+                    "pairwise_conflicts_number",
+                    "unconflicting_pull_request_groups_number",
+                    "historical_ipe",
+                    "optimized_ipe",
+                    "ipe_improvement_percentage",
+                ]
+            )
+            ax = df_2.boxplot()
+            ax.figure.set_size_inches(14, 12)
+            ax.figure.savefig(figure, format='png')
+            plt.clf()
+
+            self.boxplot_conflict_resolutions_tw_with_pc.save(file_name, ContentFile(figure.getvalue()), save=True)
 
     def multiple_correlation(self, x, y, z):
         """
