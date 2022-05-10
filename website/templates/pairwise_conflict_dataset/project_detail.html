@@ -11,6 +11,102 @@
             margin-right: auto;
         }
     </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.bundle.min.js"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const ctx = document.getElementById('pullRequestChart').getContext('2d');
+        const chartData = {{ pr_chart_data | safe }};
+
+        // Parse the dates to JS
+        chartData.forEach((d) => {
+            d.x = new Date(d.date);
+        });
+
+        // Render the chart
+        const chart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                datasets: [
+                    {
+                        label: '# merged pull requests',
+                        data: chartData,
+                        backgroundColor: 'rgba(20,20,220,0.5)',
+                    },
+                ],
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    xAxes: [
+                        {
+                            type: 'time',
+                            time: {
+                                unit: 'day',
+                                round: 'day',
+                                displayFormats: {
+                                    day: 'MMM D',
+                                },
+                            },
+                        },
+                    ],
+                    yAxes: [
+                        {
+                            ticks: {
+                                beginAtZero: true,
+                            },
+                        },
+                    ],
+                },
+            },
+        });
+        const ctx_pc = document.getElementById('pairwiseConflictChart').getContext('2d');
+        const pcChartData = {{ pc_chart_data | safe }};
+
+        // Parse the dates to JS
+        pcChartData.forEach((d) => {
+            d.x = new Date(d.date);
+        });
+
+        // Render the chart
+        const chart_pc = new Chart(ctx_pc, {
+            type: 'bar',
+            data: {
+                datasets: [
+                    {
+                        label: '# pairwise conflicts',
+                        data: pcChartData,
+                        backgroundColor: 'rgba(220,20,20,0.5)',
+                    },
+                ],
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    xAxes: [
+                        {
+                            type: 'time',
+                            time: {
+                                unit: 'day',
+                                round: 'day',
+                                displayFormats: {
+                                    day: 'MMM D',
+                                },
+                            },
+                        },
+                    ],
+                    yAxes: [
+                        {
+                            ticks: {
+                                beginAtZero: true,
+                            },
+                        },
+                    ],
+                },
+            },
+        });
+    });
+    </script>
     <title>Project: {{ object.name.capitalize }}</title>
 </head>
 <body>
@@ -24,10 +120,18 @@
     <span><b># Intra-branch merged PRs: </b></span> {{ intra_branch_merged_prs_number }} <br>
     <span><b>First PR date: </b></span> {{ first_pr_date }} <br>
     <span><b>Last PR date: </b></span> {{ last_pr_date }} <br>
+    <h3>Merged Pull Requests Chart</h3>
+    <div style="width: 100%;">
+        <canvas style="margin-bottom: 30px; width: 60%; height: 50%;" id="pullRequestChart"></canvas>
+    </div>
     <h2>Pairwise Conflicts info</h2>
     <span><b># Pairwise Conflicts: </b></span> {{ pc_number }} <br>
     <span><b>First Pairwise Conflicts date: </b></span> {{ first_pc_date }} <br>
     <span><b>Last Pairwise Conflicts date: </b></span> {{ last_pc_date }} <br>
+    <h3>Pairwise Conflict Chart</h3>
+    <div style="width: 100%;">
+        <canvas style="margin-bottom: 30px; width: 60%; height: 50%;" id="pairwiseConflictChart"></canvas>
+    </div>
     <h2>Time Windows</h2>
     {% for tw_ipe_stats in tws_ipe_stats %}
         <h3>{{ tw_ipe_stats.tw_size }}-day time windows</h3>
@@ -40,7 +144,9 @@
         <span><b># Time Windows equal historical IPE: </b></span> {{ tw_ipe_stats.tw_equal_ipe_quantity }} <br>
         <h4>Time Windows without pairwise conflicts histogram</h4>
         <div>
-            <img src="{{ tw_ipe_stats.hist_tw_without_pc.url }}" alt="PR number hist">
+            {% if tw_ipe_stats.tw_without_pc_quantity > 0 %}
+                <img src="{{ tw_ipe_stats.hist_tw_without_pc.url }}" alt="PR number hist">
+            {% endif %}
         </div>
         <h4>Time Windows with pairwise conflicts histogram</h4>
         <div>

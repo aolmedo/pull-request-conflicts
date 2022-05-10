@@ -73,18 +73,20 @@ class ProjectIPEStats(models.Model):
         tws = self.project.ipe_time_windows.filter(tw_size=self.tw_size,
                                                    pairwise_conflicts_number=0)
         df = pd.DataFrame.from_records(list(tws.values()), coerce_float=True)
-        df = df.drop(columns=['id', 'project_id', 'start_date', 'end_date', 'tw_size', 'pairwise_conflict_graph_image',
-                              'colored_pairwise_conflict_graph_image', 'pull_request_group_graph_image',
-                              'integration_trajectories_image'])
+        if len(df) > 0:
+            df = df.drop(columns=['id', 'project_id', 'start_date', 'end_date', 'tw_size', 'pairwise_conflict_graph_image',
+                                  'colored_pairwise_conflict_graph_image', 'pull_request_group_graph_image',
+                                  'integration_trajectories_image'])
         return df
 
     def tw_with_pc_dataframe(self):
         tws = self.project.ipe_time_windows.filter(tw_size=self.tw_size,
                                                    pairwise_conflicts_number__gt=0)
         df = pd.DataFrame.from_records(list(tws.values()),  coerce_float=True)
-        df = df.drop(columns=['id', 'project_id', 'start_date', 'end_date', 'tw_size', 'pairwise_conflict_graph_image',
-                              'colored_pairwise_conflict_graph_image', 'pull_request_group_graph_image',
-                              'integration_trajectories_image'])
+        if len(df) > 0:
+            df = df.drop(columns=['id', 'project_id', 'start_date', 'end_date', 'tw_size', 'pairwise_conflict_graph_image',
+                                  'colored_pairwise_conflict_graph_image', 'pull_request_group_graph_image',
+                                  'integration_trajectories_image'])
         return df
 
     def tw_without_pc_hist(self):
@@ -92,14 +94,14 @@ class ProjectIPEStats(models.Model):
         figure = io.BytesIO()
 
         df = self.tw_without_pc_dataframe()
+        if len(df) > 0:
+            ax = df.hist(column='pull_requests_number')
+            fig = ax[0][0].get_figure()
 
-        ax = df.hist(column='pull_requests_number')
-        fig = ax[0][0].get_figure()
+            fig.savefig(figure, format='png')
+            plt.clf()
 
-        fig.savefig(figure, format='png')
-        plt.clf()
-
-        self.hist_tw_without_pc.save(file_name, ContentFile(figure.getvalue()), save=True)
+            self.hist_tw_without_pc.save(file_name, ContentFile(figure.getvalue()), save=True)
 
     def tw_with_pc_hist(self):
         file_name = '{}_{}_hist_tw_with_pc.png'.format(self.project.name, self.tw_size)
