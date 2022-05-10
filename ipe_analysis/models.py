@@ -116,7 +116,7 @@ class ProjectIPEStats(models.Model):
 
     def tw_with_pc_stats(self):
         df = self.tw_with_pc_dataframe()
-        return dict(df.describe())
+        return df.describe()
 
     def tw_with_pc_corr_matrix(self):
         file_name = '{}_{}_correlation_matrix.png'.format(self.project.name, self.tw_size)

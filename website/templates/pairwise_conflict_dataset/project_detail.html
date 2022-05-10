@@ -47,10 +47,7 @@
             <img width="60%" src="{{ tw_ipe_stats.hist_tw_with_pc.url }}" alt="hist">
         </div>
         <h4>Time Windows with pairwise conflicts. Descriptive statistics</h4>
-        {% for key, value in tw_ipe_stats.tw_with_pc_stats.items %}
-            {{ key }}<br>
-            {{ value }}<br>
-        {% endfor %}
+        {{ tw_ipe_stats.tw_with_pc_stats.to_html | safe }}
         <h4>Correlation Matrix</h4>
         <div>
             <img width="60%" src="{{ tw_ipe_stats.corr_matrix_tw_with_pc.url }}" alt="Correlation Matrix">
