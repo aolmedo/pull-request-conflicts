@@ -121,7 +121,9 @@ class ProjectIPEStats(models.Model):
 
     def tw_with_pc_stats(self):
         df = self.tw_with_pc_dataframe()
-        return df.describe()
+        desc = df.describe()
+        desc = desc.drop(["count", "25%", "50%", "75%"])
+        return desc
 
     def tw_with_pc_corr_matrix(self):
         df = self.tw_with_pc_dataframe()
@@ -160,9 +162,21 @@ class ProjectIPEStats(models.Model):
                     "ipe_improvement_percentage",
                 ]
             )
-            ax = df_2.boxplot()
-            ax.figure.set_size_inches(14, 12)
-            ax.figure.savefig(figure, format='png')
+            # ax = df_2.boxplot()
+            # ax.figure.set_size_inches(14, 12)
+            axis_x = ['potential_conflict_resolutions_number',
+                      'historical_conflict_resolutions_number',
+                      'optimized_conflict_resolutions_number']
+            potential_conflict_resolutions_number = list(df_2.potential_conflict_resolutions_number)
+            historical_conflict_resolutions_number = list(df_2.historical_conflict_resolutions_number)
+            optimized_conflict_resolutions_number = list(df_2.optimized_conflict_resolutions_number)
+            for idx in range(len(potential_conflict_resolutions_number)):
+                axis_y = [potential_conflict_resolutions_number[idx],
+                          historical_conflict_resolutions_number[idx],
+                          optimized_conflict_resolutions_number[idx]]
+                plt.plot(axis_x, axis_y, "o-")
+
+            plt.savefig(figure, format='png')
             plt.clf()
 
             self.boxplot_conflict_resolutions_tw_with_pc.save(file_name, ContentFile(figure.getvalue()), save=True)

@@ -76,6 +76,27 @@ class ProjectIPEStatsDetailView(DetailView):
         # IPE stats
         tws_ipe_stats = self.object.ipe_stats.all()
 
+        tws_comparison_table = [['TW Size'], ['# TWs'], ['% TWs without conflicts'], ['% TWs with conflicts'],
+                                ['% TWs improve historical IPE'], ['% TWs not improve historical IPE'],
+                                ['% TWs equal historical IPE'], ['% IPE improvement min'], ['% IPE improvement mean'],
+                                ['% IPE improvement max']]
+        for tw_ipe_stats in tws_ipe_stats.order_by('tw_size'):
+            tws_comparison_table[0].append('{}-days'.format(tw_ipe_stats.tw_size))
+            tws_comparison_table[1].append(tw_ipe_stats.tw_quantity)
+            tws_comparison_table[2].append(round(
+                (tw_ipe_stats.tw_without_pc_quantity() / tw_ipe_stats.tw_quantity) * 100, 2))
+            tws_comparison_table[3].append(tw_ipe_stats.tw_with_pc_percentage)
+            tws_comparison_table[4].append(round(
+                (tw_ipe_stats.tw_improves_ipe_quantity / tw_ipe_stats.tw_with_pc_quantity()) * 100, 2))
+            tws_comparison_table[5].append(round(
+                (tw_ipe_stats.tw_not_improves_ipe_quantity / tw_ipe_stats.tw_with_pc_quantity()) * 100, 2))
+            tws_comparison_table[6].append(round(
+                (tw_ipe_stats.tw_equal_ipe_quantity / tw_ipe_stats.tw_with_pc_quantity()) * 100, 2))
+            desc = tw_ipe_stats.tw_with_pc_stats()
+            tws_comparison_table[7].append(desc["ipe_improvement_percentage"]["min"])
+            tws_comparison_table[8].append(round(desc["ipe_improvement_percentage"]["mean"], 2))
+            tws_comparison_table[9].append(desc["ipe_improvement_percentage"]["max"])
+
         # PRs info
         context['prs_number'] = prs_number
         context['merged_prs_number'] = merged_prs_number
@@ -90,5 +111,6 @@ class ProjectIPEStatsDetailView(DetailView):
         context['pc_chart_data'] = pc_chart_data
         # IPE Stats
         context['tws_ipe_stats'] = tws_ipe_stats
+        context['tws_comparison_table'] = tws_comparison_table
 
         return context
