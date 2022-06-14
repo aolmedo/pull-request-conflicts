@@ -29,9 +29,10 @@ class Command(BaseCommand):
                                                              second_pairwise_conflicts__isnull=True)\
                     .order_by('opened_at'):
                 total_prs += 1
-                for another_pull_request in PullRequest.objects.filter(merged=True,
-                                                                       closed_at__gte=pull_request.opened_at,
-                                                                       closed_at__lte=pull_request.closed_at)\
+                for another_pull_request in project.pull_requests.filter(merged=True,
+                                                                         base_branch=pull_request.base_branch,
+                                                                         closed_at__gte=pull_request.opened_at,
+                                                                         closed_at__lte=pull_request.closed_at)\
                         .order_by('opened_at'):
                     conflict_ret = self.conflicting_pull_requests(pull_request, another_pull_request)
                     if conflict_ret == -1:
@@ -41,9 +42,10 @@ class Command(BaseCommand):
                         PairwiseConflict.objects.create(first_pull_request=pull_request,
                                                         second_pull_request=another_pull_request)
 
-                for another_pull_request in PullRequest.objects.filter(merged=True,
-                                                                       opened_at__gte=pull_request.opened_at,
-                                                                       opened_at__lte=pull_request.closed_at)\
+                for another_pull_request in project.pull_requests.filter(merged=True,
+                                                                         base_branch=pull_request.base_branch,
+                                                                         opened_at__gte=pull_request.opened_at,
+                                                                         opened_at__lte=pull_request.closed_at)\
                         .order_by('opened_at'):
                     conflict_ret = self.conflicting_pull_requests(pull_request, another_pull_request)
                     if conflict_ret == -1:

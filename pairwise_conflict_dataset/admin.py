@@ -19,7 +19,7 @@ class ProjectResource(resources.ModelResource):
 
 class ProjectAdmin(ExportMixin, admin.ModelAdmin):
     list_display = ('name', 'description', 'github_url_link', 'language', 'created_at', 'pull_requests_count',
-                    'commits_count', 'pairwise_conflicts_count', 'data_quality_percentage')
+                    'commits_count', 'pairwise_conflicts_count')
     date_hierarchy = 'created_at'
     list_filter = ('language',)
     search_fields = ['name',]

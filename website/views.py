@@ -78,7 +78,8 @@ class ProjectIPEStatsDetailView(DetailView):
 
         tws_comparison_table = [['TW Size'], ['# TWs'], ['% TWs without conflicts'], ['% TWs with conflicts'],
                                 ['% TWs improve historical IPE'], ['% TWs not improve historical IPE'],
-                                ['% TWs equal historical IPE'], ['% IPE improvement min'], ['% IPE improvement mean'],
+                                ['% TWs equal historical IPE'], ['% #CR improvement min'], ['% #CR improvement mean'],
+                                ['% #CR improvement max'], ['% IPE improvement min'], ['% IPE improvement mean'],
                                 ['% IPE improvement max']]
         for tw_ipe_stats in tws_ipe_stats.order_by('tw_size'):
             tws_comparison_table[0].append('{}-days'.format(tw_ipe_stats.tw_size))
@@ -93,9 +94,12 @@ class ProjectIPEStatsDetailView(DetailView):
             tws_comparison_table[6].append(round(
                 (tw_ipe_stats.tw_equal_ipe_quantity / tw_ipe_stats.tw_with_pc_quantity()) * 100, 2))
             desc = tw_ipe_stats.tw_with_pc_stats()
-            tws_comparison_table[7].append(desc["ipe_improvement_percentage"]["min"])
-            tws_comparison_table[8].append(round(desc["ipe_improvement_percentage"]["mean"], 2))
-            tws_comparison_table[9].append(desc["ipe_improvement_percentage"]["max"])
+            tws_comparison_table[7].append(desc["cr_improvement_percentage"]["min"])
+            tws_comparison_table[8].append(round(desc["cr_improvement_percentage"]["mean"], 2))
+            tws_comparison_table[9].append(desc["cr_improvement_percentage"]["max"])
+            tws_comparison_table[10].append(desc["ipe_improvement_percentage"]["min"])
+            tws_comparison_table[11].append(round(desc["ipe_improvement_percentage"]["mean"], 2))
+            tws_comparison_table[12].append(desc["ipe_improvement_percentage"]["max"])
 
         # PRs info
         context['prs_number'] = prs_number

@@ -25,6 +25,8 @@ class IPETimeWindow(models.Model):
     optimized_conflict_resolutions_number = models.PositiveIntegerField(_(u'# optimized conflict resolutions'))
     optimized_ipe = models.DecimalField(_(u'optimized IPE'), max_digits=10, decimal_places=2)
     ipe_improvement_percentage = models.DecimalField(_(u'IPE improvement (%)'), max_digits=10, decimal_places=2)
+    # cr_improvement_percentage = models.DecimalField(_(u'# conflict resolutions improvement (%)'),
+    #                                                 max_digits=10, decimal_places=2)
     # images
     pairwise_conflict_graph_image = models.ImageField(upload_to='pairwise_conflict_graphs', null=True, blank=True)
     colored_pairwise_conflict_graph_image = models.ImageField(upload_to='colored_pairwise_conflict_graphs',
@@ -87,6 +89,8 @@ class ProjectIPEStats(models.Model):
             df = df.drop(columns=['id', 'project_id', 'start_date', 'end_date', 'tw_size', 'pairwise_conflict_graph_image',
                                   'colored_pairwise_conflict_graph_image', 'pull_request_group_graph_image',
                                   'integration_trajectories_image'])
+            df['cr_improvement_percentage'] = [((tw.historical_conflict_resolutions_number /
+                                                 tw.optimized_conflict_resolutions_number) - 1) * 100.0 for tw in tws]
         return df
 
     def tw_without_pc_hist(self):
