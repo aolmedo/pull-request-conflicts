@@ -25,8 +25,8 @@ class IPETimeWindow(models.Model):
     optimized_conflict_resolutions_number = models.PositiveIntegerField(_(u'# optimized conflict resolutions'))
     optimized_ipe = models.DecimalField(_(u'optimized IPE'), max_digits=10, decimal_places=2)
     ipe_improvement_percentage = models.DecimalField(_(u'IPE improvement (%)'), max_digits=10, decimal_places=2)
-    # cr_improvement_percentage = models.DecimalField(_(u'# conflict resolutions improvement (%)'),
-    #                                                 max_digits=10, decimal_places=2)
+    cr_improvement_percentage = models.DecimalField(_(u'# conflict resolutions improvement (%)'),
+                                                    max_digits=10, decimal_places=2)
     # images
     pairwise_conflict_graph_image = models.ImageField(upload_to='pairwise_conflict_graphs', null=True, blank=True)
     colored_pairwise_conflict_graph_image = models.ImageField(upload_to='colored_pairwise_conflict_graphs',
@@ -53,15 +53,28 @@ class ProjectIPEStats(models.Model):
                                                 max_digits=10, decimal_places=2)
     tw_improves_ipe_quantity = models.PositiveIntegerField(_(u'# time windows improve IPE'))
     tw_equal_ipe_quantity = models.PositiveIntegerField(_(u'# time windows equal IPE'))
-    tw_not_improves_ipe_quantity = models.PositiveIntegerField(_(u'# time windows not improve IPE'))
+    tw_worsen_ipe_quantity = models.PositiveIntegerField(_(u'# time windows not improve IPE'))
 
-    # images
-    hist_tw_without_pc = models.ImageField(upload_to='hist_tw_without_pc', null=True, blank=True)
-    hist_tw_with_pc = models.ImageField(upload_to='hist_tw_with_pc', null=True, blank=True)
-    corr_matrix_tw_with_pc = models.ImageField(upload_to='corr_matrix_tw_with_pc', null=True, blank=True)
-    boxplot_conflict_resolutions_tw_with_pc = models.ImageField(upload_to='boxplot_conflict_resolutions_tw_with_pc',
-                                                                null=True, blank=True)
-    # cov_matrix_tw_with_pc = models.ImageField(upload_to='cov_matrix_tw_with_pc', null=True, blank=True)
+    tw_improves_cr_quantity = models.PositiveIntegerField(_(u'# time windows improve CR number'))
+    tw_equal_cr_quantity = models.PositiveIntegerField(_(u'# time windows equal CR number'))
+
+    cr_improvement_percentage_min = models.DecimalField(_(u'MIN # conflict resolutions improvement (%)'),
+                                                        max_digits=10, decimal_places=2)
+    cr_improvement_percentage_mean = models.DecimalField(_(u'MEAN # CR improvement (%)'),
+                                                         max_digits=10, decimal_places=2)
+    cr_improvement_percentage_std = models.DecimalField(_(u'STD # CR improvement (%)'),
+                                                        max_digits=10, decimal_places=2)
+    cr_improvement_percentage_max = models.DecimalField(_(u'MAX # CR improvement (%)'),
+                                                        max_digits=10, decimal_places=2)
+
+    ipe_improvement_percentage_min = models.DecimalField(_(u'MIN IPE improvement (%)'),
+                                                         max_digits=10, decimal_places=2)
+    ipe_improvement_percentage_mean = models.DecimalField(_(u'MEAN IPE improvement (%)'),
+                                                         max_digits=10, decimal_places=2)
+    ipe_improvement_percentage_std = models.DecimalField(_(u'STD IPE improvement (%)'),
+                                                        max_digits=10, decimal_places=2)
+    ipe_improvement_percentage_max = models.DecimalField(_(u'MAX IPE improvement (%)'),
+                                                         max_digits=10, decimal_places=2)
 
     def tw_without_pc_quantity(self):
         return self.project.ipe_time_windows.filter(tw_size=self.tw_size,
@@ -89,39 +102,9 @@ class ProjectIPEStats(models.Model):
             df = df.drop(columns=['id', 'project_id', 'start_date', 'end_date', 'tw_size', 'pairwise_conflict_graph_image',
                                   'colored_pairwise_conflict_graph_image', 'pull_request_group_graph_image',
                                   'integration_trajectories_image'])
-            df['cr_improvement_percentage'] = [((tw.historical_conflict_resolutions_number /
-                                                 tw.optimized_conflict_resolutions_number) - 1) * 100.0 for tw in tws]
+            # df['cr_improvement_percentage'] = [((tw.historical_conflict_resolutions_number /
+            #                                     tw.optimized_conflict_resolutions_number) - 1) * 100.0 for tw in tws]
         return df
-
-    def tw_without_pc_hist(self):
-        file_name = '{}_{}_hist_tw_without_pc.png'.format(self.project.name, self.tw_size)
-        figure = io.BytesIO()
-
-        df = self.tw_without_pc_dataframe()
-        if len(df) > 0:
-            ax = df.hist(column='pull_requests_number')
-            fig = ax[0][0].get_figure()
-
-            fig.savefig(figure, format='png')
-            plt.clf()
-
-            self.hist_tw_without_pc.save(file_name, ContentFile(figure.getvalue()), save=True)
-
-    def tw_with_pc_hist(self):
-        file_name = '{}_{}_hist_tw_with_pc.png'.format(self.project.name, self.tw_size)
-        figure = io.BytesIO()
-
-        df = self.tw_with_pc_dataframe()
-
-        if len(df) > 0:
-            ax = df.hist()
-            fig = ax[0][0].get_figure()
-            fig.set_size_inches(14, 12)
-
-            fig.savefig(figure, format='png')
-            plt.clf()
-
-            self.hist_tw_with_pc.save(file_name, ContentFile(figure.getvalue()), save=True)
 
     def tw_with_pc_stats(self):
         df = self.tw_with_pc_dataframe()
@@ -129,61 +112,16 @@ class ProjectIPEStats(models.Model):
         desc = desc.drop(["count", "25%", "50%", "75%"])
         return desc
 
-    def tw_with_pc_corr_matrix(self):
-        df = self.tw_with_pc_dataframe()
-        if len(df) > 0:
-            file_name = '{}_{}_correlation_matrix.png'.format(self.project.name, self.tw_size)
-            figure = io.BytesIO()
-
-            corr = df.corr()
-            ax = sns.heatmap(corr, annot=True, vmin=-1, vmax=1,
-                             xticklabels=["#PRs", "#Pairwise Conflicts", "#Potetntial CR", "#Unconflicting PR groups",
-                                          "#Historical CR", "Historicla IPE", "#Optimized CR", "Optimized IPE",
-                                          "IPE improvement %"],
-                             yticklabels=["#PRs", "#Pairwise Conflicts", "#Potetntial CR", "#Unconflicting PR groups",
-                                          "#Historical CR", "Historicla IPE", "#Optimized CR", "Optimized IPE",
-                                          "IPE improvement %"])
-            ax.set_xticklabels(ax.get_xticklabels(), rotation=45)
-            ax.figure.set_size_inches(16, 14)
-            ax.figure.savefig(figure, format='png')
-            plt.clf()
-
-            self.corr_matrix_tw_with_pc.save(file_name, ContentFile(figure.getvalue()), save=True)
-
-    def tw_with_pc_boxplot_conflict_resolutions(self):
-        df = self.tw_with_pc_dataframe()
-        if len(df) > 0:
-            file_name = '{}_{}_boxplot_conflict_resolutions.png'.format(self.project.name, self.tw_size)
-            figure = io.BytesIO()
-
-            df_2 = df.drop(
-                columns=[
-                    "pull_requests_number",
-                    "pairwise_conflicts_number",
-                    "unconflicting_pull_request_groups_number",
-                    "historical_ipe",
-                    "optimized_ipe",
-                    "ipe_improvement_percentage",
-                ]
-            )
-            # ax = df_2.boxplot()
-            # ax.figure.set_size_inches(14, 12)
-            axis_x = ['potential_conflict_resolutions_number',
-                      'historical_conflict_resolutions_number',
-                      'optimized_conflict_resolutions_number']
-            potential_conflict_resolutions_number = list(df_2.potential_conflict_resolutions_number)
-            historical_conflict_resolutions_number = list(df_2.historical_conflict_resolutions_number)
-            optimized_conflict_resolutions_number = list(df_2.optimized_conflict_resolutions_number)
-            for idx in range(len(potential_conflict_resolutions_number)):
-                axis_y = [potential_conflict_resolutions_number[idx],
-                          historical_conflict_resolutions_number[idx],
-                          optimized_conflict_resolutions_number[idx]]
-                plt.plot(axis_x, axis_y, "o-")
-
-            plt.savefig(figure, format='png')
-            plt.clf()
-
-            self.boxplot_conflict_resolutions_tw_with_pc.save(file_name, ContentFile(figure.getvalue()), save=True)
+    def fill_statistical_data(self):
+        stats = self.tw_with_pc_stats()
+        self.cr_improvement_percentage_min = stats["cr_improvement_percentage"]["min"]
+        self.cr_improvement_percentage_mean = stats["cr_improvement_percentage"]["mean"]
+        self.cr_improvement_percentage_std = stats["cr_improvement_percentage"]["std"]
+        self.cr_improvement_percentage_max = stats["cr_improvement_percentage"]["max"]
+        self.ipe_improvement_percentage_min = stats["ipe_improvement_percentage"]["min"]
+        self.ipe_improvement_percentage_mean = stats["ipe_improvement_percentage"]["mean"]
+        self.ipe_improvement_percentage_std = stats["ipe_improvement_percentage"]["std"]
+        self.ipe_improvement_percentage_max = stats["ipe_improvement_percentage"]["max"]
 
     def multiple_correlation(self, x, y, z):
         """
@@ -232,6 +170,8 @@ class IPECalculation(object):
             self.historical_ipe = self.get_historical_ipe()
             self.optimized_ipe = self.get_optimized_ipe()
             self.ipe_improvement_percentage = ((self.optimized_ipe / self.historical_ipe) - 1) * 100
+            self.cr_improvement_percentage = ((self.historical_conflict_resolutions_number /
+                                               self.optimized_conflict_resolutions_number) - 1) * 100
 
     def historical_cost_gain_function(self):
         self.historical_conflict_resolutions_number = 0

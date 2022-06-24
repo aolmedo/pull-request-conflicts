@@ -8,11 +8,12 @@ from ipe_analysis.models import IPETimeWindow, IPECalculation
 
 
 class Command(BaseCommand):
-    help = 'Get pairwise conflicts'
+    help = 'Calculate IPE Time Windows'
 
     def add_arguments(self, parser):
         parser.add_argument('--project_name', help="run command for one project")
         parser.add_argument('--time_interval', help="time window lenght")
+        parser.add_argument('--generate_images', help="time window lenght")
 
     def handle(self, *args, **options):
         if options.get('project_name'):
@@ -23,6 +24,10 @@ class Command(BaseCommand):
             time_interval = int(options.get('time_interval'))
         else:
             time_interval = 14
+        if options.get('generate_images'):
+            generate_images = True
+        else:
+            generate_images = False
         for project in projects:
             time_windows = []
             pairwise_conflicts = PairwiseConflict.objects.filter(first_pull_request__project=project).\
@@ -61,19 +66,26 @@ class Command(BaseCommand):
                                                                optimized_conflict_resolutions_number,
                                                                optimized_ipe=ipe_data.optimized_ipe,
                                                                ipe_improvement_percentage=ipe_data.
-                                                               ipe_improvement_percentage)
-                file_name = '{}_{}_{}.png'.format(project.name,
-                                                  date_from.strftime('%Y-%m-%d'),
-                                                  date_to.strftime('%Y-%m-%d'))
-                blob = GraphDrawer().store_graph(ipe_data.pcga.convert_to_nx_graph(colored=False))
-                ipe_time_window.pairwise_conflict_graph_image.save(file_name, ContentFile(blob.getvalue()), save=True)
+                                                               ipe_improvement_percentage,
+                                                               cr_improvement_percentage=ipe_data.
+                                                               cr_improvement_percentage)
+                if generate_images:
+                    file_name = '{}_{}_{}.png'.format(project.name,
+                                                      date_from.strftime('%Y-%m-%d'),
+                                                      date_to.strftime('%Y-%m-%d'))
+                    blob = GraphDrawer().store_graph(ipe_data.pcga.convert_to_nx_graph(colored=False))
+                    ipe_time_window.pairwise_conflict_graph_image.save(file_name, ContentFile(blob.getvalue()),
+                                                                       save=True)
 
-                blob = GraphDrawer().store_graph(ipe_data.pcga.convert_to_nx_graph(colored=True))
-                ipe_time_window.colored_pairwise_conflict_graph_image.save(file_name,
-                                                                           ContentFile(blob.getvalue()), save=True)
+                    blob = GraphDrawer().store_graph(ipe_data.pcga.convert_to_nx_graph(colored=True))
+                    ipe_time_window.colored_pairwise_conflict_graph_image.save(file_name,
+                                                                               ContentFile(blob.getvalue()),
+                                                                               save=True)
 
-                blob = GraphDrawer().store_graph(ipe_data.pcga.convert_pcgg_to_nx_graph(), height=1, width=1)
-                ipe_time_window.pull_request_group_graph_image.save(file_name, ContentFile(blob.getvalue()), save=True)
+                    blob = GraphDrawer().store_graph(ipe_data.pcga.convert_pcgg_to_nx_graph(), height=1, width=1)
+                    ipe_time_window.pull_request_group_graph_image.save(file_name, ContentFile(blob.getvalue()),
+                                                                        save=True)
 
-                blob = ipe_data.plot()
-                ipe_time_window.integration_trajectories_image.save(file_name, ContentFile(blob.getvalue()), save=True)
+                    blob = ipe_data.plot()
+                    ipe_time_window.integration_trajectories_image.save(file_name, ContentFile(blob.getvalue()),
+                                                                        save=True)
