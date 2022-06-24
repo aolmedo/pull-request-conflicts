@@ -170,8 +170,11 @@ class IPECalculation(object):
             self.historical_ipe = self.get_historical_ipe()
             self.optimized_ipe = self.get_optimized_ipe()
             self.ipe_improvement_percentage = ((self.optimized_ipe / self.historical_ipe) - 1) * 100
-            self.cr_improvement_percentage = ((self.historical_conflict_resolutions_number /
-                                               self.optimized_conflict_resolutions_number) - 1) * 100
+            if self.optimized_conflict_resolutions_number > 0:
+                self.cr_improvement_percentage = ((self.historical_conflict_resolutions_number /
+                                                   self.optimized_conflict_resolutions_number) - 1) * 100
+            else:
+                self.cr_improvement_percentage = 0
 
     def historical_cost_gain_function(self):
         self.historical_conflict_resolutions_number = 0
