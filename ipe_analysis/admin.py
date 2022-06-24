@@ -13,27 +13,29 @@ class IPETimeWindowResource(resources.ModelResource):
         fields = ('project__name', 'start_date', 'end_date', 'pull_requests_number', 'pairwise_conflicts_number',
                   'potential_conflict_resolutions_number', 'unconflicting_pull_request_groups_number',
                   'historical_conflict_resolutions_number', 'historical_ipe', 'optimized_conflict_resolutions_number',
-                  'optimized_ipe', 'ipe_improvement_percentage')
+                  'optimized_ipe', 'cr_improvement_percentage', 'ipe_improvement_percentage')
         export_order = ('project__name', 'start_date', 'end_date', 'pull_requests_number', 'pairwise_conflicts_number',
                         'potential_conflict_resolutions_number', 'unconflicting_pull_request_groups_number',
                         'historical_conflict_resolutions_number', 'historical_ipe',
-                        'optimized_conflict_resolutions_number', 'optimized_ipe', 'ipe_improvement_percentage')
+                        'optimized_conflict_resolutions_number', 'optimized_ipe', 'cr_improvement_percentage',
+                        'ipe_improvement_percentage')
 
 
 class IPETimeWindowAdmin(ExportMixin, admin.ModelAdmin):
     list_display = ('project', 'tw_size', 'start_date', 'end_date', 'pull_requests_number', 'pairwise_conflicts_number',
                     'potential_conflict_resolutions_number', 'unconflicting_pull_request_groups_number',
                     'historical_conflict_resolutions_number', 'historical_ipe', 'optimized_conflict_resolutions_number',
-                    'optimized_ipe', 'ipe_improvement_percentage', 'view_detail')
+                    'optimized_ipe', 'cr_improvement_percentage', 'ipe_improvement_percentage', 'view_detail')
     date_hierarchy = 'start_date'
     list_filter = ('project', 'tw_size',)
     search_fields = ['project__name', ]
     readonly_fields = ('project', 'tw_size', 'start_date', 'end_date', 'pull_requests_number', 'pairwise_conflicts_number',
                        'potential_conflict_resolutions_number', 'unconflicting_pull_request_groups_number',
                        'historical_conflict_resolutions_number', 'historical_ipe',
-                       'optimized_conflict_resolutions_number', 'optimized_ipe', 'ipe_improvement_percentage',
-                       'pairwise_conflict_graph_image', 'colored_pairwise_conflict_graph_image',
-                       'pull_request_group_graph_image', 'integration_trajectories_image')
+                       'optimized_conflict_resolutions_number', 'optimized_ipe', 'cr_improvement_percentage',
+                       'ipe_improvement_percentage', 'pairwise_conflict_graph_image',
+                       'colored_pairwise_conflict_graph_image', 'pull_request_group_graph_image',
+                       'integration_trajectories_image')
     resource_class = IPETimeWindowResource
 
     @admin.display()
@@ -49,12 +51,20 @@ class IPETimeWindowAdmin(ExportMixin, admin.ModelAdmin):
 
 
 class ProjectIPEStatsAdmin(admin.ModelAdmin):
-    list_display = ('project', 'tw_size', 'tw_quantity', 'tw_with_pc_percentage', 'tw_improves_ipe_quantity',
-                    'tw_equal_ipe_quantity', 'tw_not_improves_ipe_quantity')
+    list_display = ('project', 'tw_size', 'tw_quantity', 'tw_with_pc_percentage', 'tw_improves_cr_quantity',
+                    'tw_equal_cr_quantity', 'tw_improves_ipe_quantity', 'tw_equal_ipe_quantity',
+                    'tw_worsen_ipe_quantity', 'cr_improvement_percentage_min', 'cr_improvement_percentage_mean',
+                    'cr_improvement_percentage_std', 'cr_improvement_percentage_max', 'ipe_improvement_percentage_min',
+                    'ipe_improvement_percentage_mean', 'ipe_improvement_percentage_std',
+                    'ipe_improvement_percentage_max')
     list_filter = ('project', 'tw_size',)
     search_fields = ['project__name', ]
-    readonly_fields = ('project', 'tw_size', 'tw_quantity', 'tw_with_pc_percentage', 'tw_improves_ipe_quantity',
-                       'tw_equal_ipe_quantity', 'tw_not_improves_ipe_quantity')
+    readonly_fields = ('project', 'tw_size', 'tw_quantity', 'tw_with_pc_percentage', 'tw_improves_cr_quantity',
+                       'tw_equal_cr_quantity', 'tw_improves_ipe_quantity', 'tw_equal_ipe_quantity',
+                       'tw_worsen_ipe_quantity', 'cr_improvement_percentage_min', 'cr_improvement_percentage_mean',
+                       'cr_improvement_percentage_std', 'cr_improvement_percentage_max',
+                       'ipe_improvement_percentage_min', 'ipe_improvement_percentage_mean',
+                       'ipe_improvement_percentage_std', 'ipe_improvement_percentage_max')
 
     def has_add_permission(self, request):
         return False
