@@ -50,6 +50,24 @@ class IPETimeWindowAdmin(ExportMixin, admin.ModelAdmin):
         return False
 
 
+class ProjectIPEStatsResource(resources.ModelResource):
+
+    class Meta:
+        model = ProjectIPEStats
+        fields = ('project__name', 'tw_size', 'tw_quantity', 'tw_with_pc_percentage', 'tw_improves_cr_quantity',
+                  'tw_equal_cr_quantity', 'tw_improves_ipe_quantity', 'tw_equal_ipe_quantity',
+                  'tw_worsen_ipe_quantity', 'cr_improvement_percentage_min', 'cr_improvement_percentage_mean',
+                  'cr_improvement_percentage_std', 'cr_improvement_percentage_max', 'ipe_improvement_percentage_min',
+                  'ipe_improvement_percentage_mean', 'ipe_improvement_percentage_std', 'ipe_improvement_percentage_max')
+
+        export_order = ('project__name', 'tw_size', 'tw_quantity', 'tw_with_pc_percentage', 'tw_improves_cr_quantity',
+                        'tw_equal_cr_quantity', 'tw_improves_ipe_quantity', 'tw_equal_ipe_quantity',
+                        'tw_worsen_ipe_quantity', 'cr_improvement_percentage_min', 'cr_improvement_percentage_mean',
+                        'cr_improvement_percentage_std', 'cr_improvement_percentage_max',
+                        'ipe_improvement_percentage_min', 'ipe_improvement_percentage_mean',
+                        'ipe_improvement_percentage_std', 'ipe_improvement_percentage_max')
+
+
 class ProjectIPEStatsAdmin(admin.ModelAdmin):
     list_display = ('project', 'tw_size', 'tw_quantity', 'tw_with_pc_percentage', 'tw_improves_cr_quantity',
                     'tw_equal_cr_quantity', 'tw_improves_ipe_quantity', 'tw_equal_ipe_quantity',
@@ -65,6 +83,7 @@ class ProjectIPEStatsAdmin(admin.ModelAdmin):
                        'cr_improvement_percentage_std', 'cr_improvement_percentage_max',
                        'ipe_improvement_percentage_min', 'ipe_improvement_percentage_mean',
                        'ipe_improvement_percentage_std', 'ipe_improvement_percentage_max')
+    resource_class = ProjectIPEStatsResource
 
     def has_add_permission(self, request):
         return False
