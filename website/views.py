@@ -94,7 +94,7 @@ class ProjectIPEStatsDetailView(DetailView):
             tws_comparison_table[6].append(round(
                 (tw_ipe_stats.tw_equal_ipe_quantity / tw_ipe_stats.tw_with_pc_quantity()) * 100, 2))
             desc = tw_ipe_stats.tw_with_pc_stats()
-            if desc:
+            if not desc.empty:
                 tws_comparison_table[7].append(desc["cr_improvement_percentage"]["min"])
                 tws_comparison_table[8].append(round(desc["cr_improvement_percentage"]["mean"], 2))
                 tws_comparison_table[9].append(desc["cr_improvement_percentage"]["max"])

@@ -109,14 +109,14 @@ class ProjectIPEStats(models.Model):
     def tw_with_pc_stats(self):
         df = self.tw_with_pc_dataframe()
         if df.empty:
-            return
+            return df
         desc = df.describe()
         desc = desc.drop(["count", "25%", "50%", "75%"])
         return desc
 
     def fill_statistical_data(self):
         stats = self.tw_with_pc_stats()
-        if stats:
+        if not stats.empty:
             self.cr_improvement_percentage_min = stats["cr_improvement_percentage"]["min"]
             self.cr_improvement_percentage_mean = stats["cr_improvement_percentage"]["mean"]
             self.cr_improvement_percentage_std = stats["cr_improvement_percentage"]["std"]
