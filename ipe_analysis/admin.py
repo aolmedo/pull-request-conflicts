@@ -68,7 +68,7 @@ class ProjectIPEStatsResource(resources.ModelResource):
                         'ipe_improvement_percentage_std', 'ipe_improvement_percentage_max')
 
 
-class ProjectIPEStatsAdmin(admin.ModelAdmin):
+class ProjectIPEStatsAdmin(ExportMixin, admin.ModelAdmin):
     list_display = ('project', 'tw_size', 'tw_quantity', 'tw_with_pc_percentage', 'tw_improves_cr_quantity',
                     'tw_equal_cr_quantity', 'tw_improves_ipe_quantity', 'tw_equal_ipe_quantity',
                     'tw_worsen_ipe_quantity', 'cr_improvement_percentage_min', 'cr_improvement_percentage_mean',
