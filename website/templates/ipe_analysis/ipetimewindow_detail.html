@@ -49,12 +49,16 @@
         <tr>
             <td>
                 <div>
-                    <img src="{{ object.pairwise_conflict_graph_image.url }}" alt="Pairwise Conflict Graph">
+                    {% if object.pairwise_conflict_graph_image %}
+                        <img src="{{ object.pairwise_conflict_graph_image.url }}" alt="Pairwise Conflict Graph">
+                    {% endif %}
                 </div>
             </td>
             <td>
                 <div>
-                    <img src="{{ object.colored_pairwise_conflict_graph_image.url }}" alt="Colored Pairwise Conflict Graph">
+                    {% if object.colored_pairwise_conflict_graph_image %}
+                        <img src="{{ object.colored_pairwise_conflict_graph_image.url }}" alt="Colored Pairwise Conflict Graph">
+                    {% endif %}
                 </div>
             </td>
         </tr>
@@ -65,12 +69,16 @@
         <tr>
             <td>
                 <div>
-                    <img src="{{ object.pull_request_group_graph_image.url }}" alt="Pull Request Group Graph">
+                    {% if object.pull_request_group_graph_image %}
+                        <img src="{{ object.pull_request_group_graph_image.url }}" alt="Pull Request Group Graph">
+                    {% endif %}
                 </div>
             </td>
             <td>
                 <div>
-                    <img src="{{ object.integration_trajectories_image.url }}" alt="Integration Trajectories">
+                    {% if object.integration_trajectories_image %}
+                        <img src="{{ object.integration_trajectories_image.url }}" alt="Integration Trajectories">
+                    {% endif %}
                 </div>
             </td>
         </tr>

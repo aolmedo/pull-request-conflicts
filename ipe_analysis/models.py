@@ -108,20 +108,23 @@ class ProjectIPEStats(models.Model):
 
     def tw_with_pc_stats(self):
         df = self.tw_with_pc_dataframe()
+        if df.empty:
+            return
         desc = df.describe()
         desc = desc.drop(["count", "25%", "50%", "75%"])
         return desc
 
     def fill_statistical_data(self):
         stats = self.tw_with_pc_stats()
-        self.cr_improvement_percentage_min = stats["cr_improvement_percentage"]["min"]
-        self.cr_improvement_percentage_mean = stats["cr_improvement_percentage"]["mean"]
-        self.cr_improvement_percentage_std = stats["cr_improvement_percentage"]["std"]
-        self.cr_improvement_percentage_max = stats["cr_improvement_percentage"]["max"]
-        self.ipe_improvement_percentage_min = stats["ipe_improvement_percentage"]["min"]
-        self.ipe_improvement_percentage_mean = stats["ipe_improvement_percentage"]["mean"]
-        self.ipe_improvement_percentage_std = stats["ipe_improvement_percentage"]["std"]
-        self.ipe_improvement_percentage_max = stats["ipe_improvement_percentage"]["max"]
+        if stats:
+            self.cr_improvement_percentage_min = stats["cr_improvement_percentage"]["min"]
+            self.cr_improvement_percentage_mean = stats["cr_improvement_percentage"]["mean"]
+            self.cr_improvement_percentage_std = stats["cr_improvement_percentage"]["std"]
+            self.cr_improvement_percentage_max = stats["cr_improvement_percentage"]["max"]
+            self.ipe_improvement_percentage_min = stats["ipe_improvement_percentage"]["min"]
+            self.ipe_improvement_percentage_mean = stats["ipe_improvement_percentage"]["mean"]
+            self.ipe_improvement_percentage_std = stats["ipe_improvement_percentage"]["std"]
+            self.ipe_improvement_percentage_max = stats["ipe_improvement_percentage"]["max"]
 
     def multiple_correlation(self, x, y, z):
         """
@@ -131,6 +134,8 @@ class ProjectIPEStats(models.Model):
         """
         # https://stackoverflow.com/questions/55369159/how-to-perform-three-variable-correlation-with-python-pandas
         df = self.tw_with_pc_dataframe()
+        if df.empty:
+            return
         cor = df.corr()
 
         # Pairings

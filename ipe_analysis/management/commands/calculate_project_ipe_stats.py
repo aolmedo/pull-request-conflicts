@@ -24,7 +24,10 @@ class Command(BaseCommand):
             tw_quantity = project.ipe_time_windows.filter(tw_size=tw_size).count()
             tw_with_pc_quantity = project.ipe_time_windows.filter(tw_size=tw_size,
                                                                   pairwise_conflicts_number__gt=0).count()
-            tw_with_pc_percentage = (tw_with_pc_quantity / tw_quantity) * 100
+            if tw_quantity > 0:
+                tw_with_pc_percentage = (tw_with_pc_quantity / tw_quantity) * 100
+            else:
+                tw_with_pc_percentage = 0
             tw_improves_ipe_quantity = project.ipe_time_windows.filter(tw_size=tw_size,
                                                                        pairwise_conflicts_number__gt=0,
                                                                        ipe_improvement_percentage__gt=0).count()
