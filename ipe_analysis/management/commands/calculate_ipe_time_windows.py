@@ -30,8 +30,8 @@ class Command(BaseCommand):
             generate_images = False
         for project in projects:
             time_windows = []
-            first_pr = project.pull_requests.order_by('opened_at').first()
-            current_date = first_pr.opened_at.date()
+            first_merged_pr = project.pull_requests.filter(merged=True).order_by('opened_at').first()
+            current_date = first_merged_pr.opened_at.date()
             until_date = datetime.date(2019, 6, 1)  # GHTorrent last date
 
             while current_date < until_date:
