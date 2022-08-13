@@ -1,5 +1,43 @@
 # Pull Requests Integration Process Optimization: An Empirical Study
 
+## GHTorrent data
+
+The data extracted from GHTorrent dataset is [here](https://github.com/aolmedo/pull-request-conflicts/tree/main/ghtorrent_data).
+
+## Scripts
+
+### Stage 1: GHtorrent data extraction
+
+To extract the data from GHTorrent we use the following script:
+
+     python ghtorrent_extract_data.py
+
+The extracted data can be found [here](https://github.com/aolmedo/pull-request-conflicts/tree/main/ghtorrent_data).
+
+### Stage 2: Pairwise conflict dataset creation
+
+Import projects:
+
+     python manage.py import_projects
+
+Upgrade project info:
+
+     python manage.py upgrade_project_info
+
+Import commits, import pull requests, upgrade pull requests info, get pairwise conflicts:
+
+     python build_dataset.py
+
+### Stage 3: Integration process analysis
+
+Calculate projects time windows info:
+
+     python calculate_projects_time_windows.py
+
+Calculate projects time windows statistics:
+
+     python calculate_projects_ipe_stats.py
+
 ## Reproducibility Assessment
 
 We conduct the reproducibility assessment for our empirical study according to the methodological framework of González-Barahona and Robles [1]. González-Barahona and Robles have designed a framework for assessing empirical studies using five criteria applied on eight study elements. The five criteria defined in the framework are the following:
