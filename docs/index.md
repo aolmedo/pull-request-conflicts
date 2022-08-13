@@ -1,37 +1,40 @@
-## Welcome to GitHub Pages
+# Pull Requests Integration Process Optimization: An Empirical Study
 
-You can use the [editor on GitHub](https://github.com/aolmedo/pull-request-conflicts/edit/main/docs/index.md) to maintain and preview the content for your website in Markdown files.
+## Reproducibility Assessment
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
+We conduct the reproducibility assessment for our empirical study according to the methodological framework of González-Barahona and Robles [1]. González-Barahona and Robles have designed a framework for assessing empirical studies using five criteria applied on eight study elements. The five criteria defined in the framework are the following:
 
-### Markdown
+- Identification: where the elements of the study are stored, \ie where their originals can be found
+- Description: the level of detail of each study elements. 
+    - "Textual" refers to a textual description of your data or your process.
+    - "Source code" refers to an implementation used to obtain, exploit or analyze the data.
+- Availability: easiness with which other researchers can obtain the research material.
+- Persistence: persistence of the research elements over time.
+- Flexibility: adaptability of research elements to new environments.
 
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
+Using them, González-Barahona and Robles characterize eight study elements:
 
-```markdown
-Syntax highlighted code block
+1. Data Source. This source may be the software repository(ies) used for the study. This source may also concern study objects (libraries, packages, etc.) or a set of concatenated data.
+2.  Retrieval methodology. Extraction process from the raw data source, using manual or automated tools.
+3.  Raw dataset. Data obtained after extraction without any modification.
+4.  Methodology extraction. Process used to extract and clean the relevant data from the raw data.
+5.  Study parameters. The study parameters affecting the processes changing the dataset. These can be time periods, types of information, etc.
+6.  Processed dataset. A set of data processed through the extraction methodology that will be the inputs to the methodological analysis. This data can be, for example, an SQL database, a CSV file for use in a spreadsheet or any other analysis tool.
+7.  Analysis methodology. The process of analysing all or part of the data to obtain results.
+8.  Results dataset. Data produced by the analysis methodology and using the processed dataset. These data are the basis of the research results. They can be of different forms: textual, graphical, mathematical, etc.
 
-# Header 1
-## Header 2
-### Header 3
+Each pair of criteria / element can take the following values:
 
-- Bulleted
-- List
+-  Complete: value used to describe the availability of all the information necessary to locate or identify an element of the study. The information given may be textual only or from the source code of the experiment.
+- Partial: indicates a lack of information or too much generality around the study element.
+- No: total lack of information on the element.
+- N/A (Not Applicable): implies that the attribute is not applicable to the element in question.
+- Private/Public: value characterising the availability of the search item.
+- Probable: value applying to the persistence attribute in the case where there is a possibility that an item will be available for future access.
+- Unknown: value used for the persistence attribute in case it is impossible to determine any persistence over time.
 
-1. Numbered
-2. List
+The reproducibility assessment for our study is given in the following table:
 
-**Bold** and _Italic_ and `Code` text
+[ADD TABLE]
 
-[Link](url) and ![Image](src)
-```
-
-For more details see [Basic writing and formatting syntax](https://docs.github.com/en/github/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax).
-
-### Jekyll Themes
-
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/aolmedo/pull-request-conflicts/settings/pages). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
-
-### Support or Contact
-
-Having trouble with Pages? Check out our [documentation](https://docs.github.com/categories/github-pages-basics/) or [contact support](https://support.github.com/contact) and we’ll help you sort it out.
+We achieve a good reproducibility for this contribution due to the availability of the raw data used but also due to the availability of the source code related to the experiments and analysis. A point of improvement could be to provide the various intermediate data sets between the raw data and the results. Indeed, as shown by the \tabref{table:reproducibility-assesment} we not provide the intermediate dataset created at each step of processing.
