@@ -36,9 +36,13 @@ Calculate projects time windows info:
 
      python calculate_projects_time_windows.py
 
+The calculated time windows are [here](https://github.com/aolmedo/pull-request-conflicts/blob/main/results/projects_time_windows.csv).
+
 Calculate projects time windows statistics:
 
      python calculate_projects_ipe_stats.py
+
+The calculated statistical data is [here](https://github.com/aolmedo/pull-request-conflicts/blob/main/results/projects_time_windows_statistical_data.csv).
 
 ## Reproducibility Assessment
 
