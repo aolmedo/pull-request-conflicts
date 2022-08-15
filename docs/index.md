@@ -4,7 +4,7 @@
 
 ## GHTorrent data
 
-The data extracted from GHTorrent dataset is [here](https://github.com/aolmedo/pull-request-conflicts/tree/main/ghtorrent_data).
+The data extracted from GHTorrent dataset is in [ghtorrent_data](https://github.com/aolmedo/pull-request-conflicts/tree/main/ghtorrent_data) folder.
 
 ## Scripts
 
@@ -14,7 +14,7 @@ To extract the data from GHTorrent we use the following script:
 
      python ghtorrent_extract_data.py
 
-The extracted data can be found [here](https://github.com/aolmedo/pull-request-conflicts/tree/main/ghtorrent_data).
+The extracted data can be found in [ghtorrent_data](https://github.com/aolmedo/pull-request-conflicts/tree/main/ghtorrent_data) folder.
 
 ### Stage 2: Pairwise conflict dataset creation
 
@@ -36,13 +36,13 @@ Calculate projects time windows info:
 
      python calculate_projects_time_windows.py
 
-The calculated time windows are [here](https://github.com/aolmedo/pull-request-conflicts/blob/main/results/projects_time_windows.csv).
+The calculated time windows are in [results](https://github.com/aolmedo/pull-request-conflicts/blob/main/results/projects_time_windows.csv) folder.
 
 Calculate projects time windows statistics:
 
      python calculate_projects_ipe_stats.py
 
-The calculated statistical data is [here](https://github.com/aolmedo/pull-request-conflicts/blob/main/results/projects_time_windows_statistical_data.csv).
+The calculated statistical data is in [results](https://github.com/aolmedo/pull-request-conflicts/blob/main/results/projects_time_windows_statistical_data.csv) folder.
 
 ## Reproducibility Assessment
 
@@ -84,11 +84,11 @@ The reproducibility assessment for our study is given in the following table:
 |:--------------------------:|:------------------:|:---------------------:|:----------------:|:---------------:|:---------------:|
 | **Data source**            |      Complete      |        Textual        |      Public      |     Probable    |       N/A       |
 | **Retrieval Methodology**  |      Complete      | Source code + Textual |        No        |       N/A       |       N/A       |
-| **Raw Dataset** [[here]](https://github.com/aolmedo/pull-request-conflicts/tree/main/ghtorrent_data)            |      Complete      | Source code + Textual |      Public      |     Probable    |     Partial     |
+| **Raw Dataset** [[ghtorrent_data]](https://github.com/aolmedo/pull-request-conflicts/tree/main/ghtorrent_data)            |      Complete      | Source code + Textual |      Public      |     Probable    |     Partial     |
 | **Extraction Methodology** [[here]](https://github.com/aolmedo/pull-request-conflicts/tree/main/)|      Complete      | Source code + Textual |      Public      |     Probable    |        No       |
 | **Study Parameters**       |      Complete      | Source code + Textual |        N/A       |       N/A       |       N/A       |
 | **Processed Dataset**      |       Partial      |        Textual        |        No        |     Unknown     |       N/A       |
-| **Analysis Methodology** [[here]](https://github.com/DedalArmy/empirical-study-architectural-contributions) |      Complete      | Source code + Textual |      Public      |       N/A       |       N/A       |
+| **Analysis Methodology** [[here]](https://github.com/aolmedo/pull-request-conflicts/tree/main/) |      Complete      | Source code + Textual |      Public      |       N/A       |       N/A       |
 | **Results Dataset**        |      Complete      |        Textual        |      Public      |     Probable    |       N/A       |
 
 
